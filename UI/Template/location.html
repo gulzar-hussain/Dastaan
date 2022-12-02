@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css">
+
+  <title>Dastan </title>
+
+
+</head>
+<div>
+  <div>
+    <div class="topnav">
+      <a  href="dashboard.html">Home</a>
+      
+      <a  href="location.html">location</a>
+      <a href="addpersonalstory.html">Add Personal Story</a>
+      <a href="viewpersonalstory.html">View Personal Story</a>
+
+      
+    </div>
+  
+  <!-- Side navigation -->
+<div class="sidenav">
+  
+  <img src = "avatar.png" alt = "avatar">
+  
+   
+    
+
+</div>
+
+
+
+<div class="main">
+  <div class="container">
+    <form action="action_page.php">
+  
+      <label for="fname">Name of Historical site</label>
+      
+  
+      <br>
+      
+      <img src="fh.jpg" alt="Frere Hall" width="150" height="160">
+
+      <br>
+      <label for="subject">Description of location</label>
+      <br>
+      <label for="subject">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</label>
+      
+      
+  
+    </form>
+  </div>
+
+
+
+
+<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3620.478110646292!2d67.03085311440064!3d24.84751518406003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33dd84b5b4d7b%3A0x37de022366f8096f!2sFrere%20Hall!5e0!3m2!1sen!2s!4v1668078843170!5m2!1sen!2s" width="3600" height="1450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+</body>
+
+
+<script type="text/javascript">
+
+// The latitude and longitude of your business / place
+var position = [24.847627144101455, 67.03303643243284];
+
+function showGoogleMaps() {
+
+    var latLng = new google.maps.LatLng(position[0], position[1]);
+
+    var mapOptions = {
+        zoom: 16, // initialize zoom level - the max value is 21
+        streetViewControl: false, // hide the yellow Street View pegman
+        scaleControl: true, // allow users to zoom the Google Map
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        center: latLng
+    };
+
+    map = new google.maps.Map(document.getElementById('googlemaps'),
+        mapOptions);
+
+    // Show the default red marker at the location
+    marker = new google.maps.Marker({
+        position: latLng,
+        map: map,
+        draggable: false,
+        animation: google.maps.Animation.DROP
+    });
+}
+
+google.maps.event.addDomListener(window, 'load', showGoogleMaps);    
+
+  
+  
+  
+
+</script>
+
+
+</html>
+
