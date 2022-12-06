@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <title>Personal Story</title>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+</head>
+<div>
+  <div>
+    <div class="topnav">
+      <a  href="/">Home</a>
+      
+      <!-- <a  href="/location">location</a> -->
+      <a href="/addstory">Add Personal Story</a>
+      <a href="/viewstory">View Personal Story</a>
+
+    </div>
+  
+  <!-- Side navigation -->
+  <div class="sidenav">
+    <img src = "{{ url_for('static', filename='images/avatar.png') }}" alt = "avatar">
+    <div id="chatbox">
+      <p class="botText">
+        <span>Hi! I'm Candice your personal ChatBot</span>
+      </p>
+    </div>
+    <div id="userInput">
+      <input id="textInput" type="text" name="msg" placeholder="Message" />
+    </div>
+  </div>
+    
+    
+  </div>
+  
+  <script>
+    function getBotResponse() {
+      var rawText = $("#textInput").val();
+      var userHtml = '<p class="userText"><span>' + rawText + "</span></p>";
+      $("#textInput").val("");
+      $("#chatbox").append(userHtml);
+      document
+        .getElementById("userInput")
+        .scrollIntoView({ block: "start", behavior: "smooth" });
+      $.get("/get", { msg: rawText }).done(function(data) {
+        var botHtml = '<p class="botText"><span>' + data + "</span></p>";
+        $("#chatbox").append(botHtml);
+        document
+          .getElementById("userInput")
+          .scrollIntoView({ block: "start", behavior: "smooth" });
+      });
+    }
+    $("#textInput").keypress(function(e) {
+      if (e.which == 13) {
+        getBotResponse();
+      }
+    });
+  </script>
+
+
+<div class="main">
+  <div class="container">
+    <form name = "getstory" action="getstory" method = "POST">
+  
+        <label for="year">Year</label>
+        <select id="year" name="year">
+          <option value=""></option>
+          <option value="1947">1947</option>
+          <option value="1950">1950</option>
+          <option value="1990">1990</option>
+          <option value="1999">1999</option>
+          <option value="2000">2000</option>
+          <option value="2011">2011</option>
+        </select>
+        <br>
+        <label for="tags">Tags</label>
+        <select id="tags" name="tags">
+          <option value=""></option>
+          <option value="political">Political</option>
+          <option value="social">Social</option>
+          <option value="music">Music</option>
+          <option value="cultural">cultural</option>
+          <option value="history">history</option>
+        </select>
+      <br>
+      <label for="location">Location</label>
+
+      <select id="location" name="location">  
+        <option value=""></option>      
+        <option value="Saddar">Saddar</option>
+        <option value="Frere Hall">Frere Hall</option>
+        <option value="Empress Market">Empress Market</option> 
+        <option value="Mazar-e-Quaid">Mazar-e-Quaid</option>
+        <option value="Teen Talwar">Teen Talwar</option>
+        <option value="Clifton">Clifton</option> 
+        <option value="National Museum Of Pakistan">National Museum Of Pakistan</option> 
+        
+      </select>
+      
+      
+      <input type="submit" value="submit">
+    </form>
+    <form action="getstory">
+        <label for="story">Story</label>
+        <br>
+
+        {% for item in data %}
+        <textarea id="mystory" name="description"  style="height:200px">{{item[0]}}</textarea>
+        {% endfor %}
+    </form>
+  </div>
+
+  
+
+  <!-- <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3620.478110646292!2d67.03085311440064!3d24.84751518406003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33dd84b5b4d7b%3A0x37de022366f8096f!2sFrere%20Hall!5e0!3m2!1sen!2s!4v1668078843170!5m2!1sen!2s" width="3600" height="1450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
+
+</div> 
+  
+
+</body>
+</html>
