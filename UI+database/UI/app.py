@@ -12,12 +12,12 @@ from chatterbot.trainers import ListTrainer
 
 bot = ChatBot("DaastanGo")
 trainer=ListTrainer(bot)
-trainer.train(['What is your name?', 'DaastanGo'])
-trainer.train(['Can you tell me about Empress Market', 'Sure. what would you like to know about it' ])
-trainer.train(['its history', 'Empress Market'])
-trainer.train(['a personal story', 'Sorry, but currently we dont have any.'])
-trainer=ChatterBotCorpusTrainer(bot)
-trainer.train("chatterbot.corpus.english")
+# trainer.train(['What is your name?', 'DaastanGo'])
+# trainer.train(['Can you tell me about Empress Market', 'Sure. what would you like to know about it' ])
+# trainer.train(['its history', 'Empress Market'])
+# trainer.train(['a personal story', 'Sorry, but currently we dont have any.'])
+# trainer=ChatterBotCorpusTrainer(bot)
+# trainer.train("chatterbot.corpus.english")
 #!/usr/bin/python
 
 def get_db_connection():
@@ -62,23 +62,14 @@ def getLocation(address):
 
 
 @app.route('/')
-# @app.route("/dashboard")
-def dashboard():
+def login():
+    return render_template('login.html')
+@app.route('/dashboard')
+def getdashboard():
     return render_template('dashboard.html')
-# def dashboard():
-#     location=location_by_key.get('frere')
-#     if location:
-#         return render_template('dashboard.html', location=location)
-#     else:
-#         abort(404)
-# def viewpersonalstory():
-#     # return render_template('addpersonalstory.html')
-#     return render_template('viewStory.html')
-
 @app.route('/location')
 def getlocation():
     return render_template('location.html')
-
 @app.route("/viewstory")
 def getViewStory():
     return render_template('viewStory.html')
