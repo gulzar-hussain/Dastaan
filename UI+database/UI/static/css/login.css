@@ -6,12 +6,12 @@ body {
   align-items: center;
   min-height: 100vh;
   font-family: "Jost", sans-serif;
-  background: linear-gradient(to bottom, #290c0c, #632b2e, #3e2424);
+  background: linear-gradient(to bottom, #0e0b0b, #111010, #080808);
 }
 .main {
   width: 350px;
   height: 500px;
-  background: red;
+  background: black;
   overflow: hidden;
   background: url("https://doc-08-2c-docs.googleusercontent.com/docs/securesc/68c90smiglihng9534mvqmq1946dmis5/fo0picsp1nhiucmc0l25s29respgpr4j/1631524275000/03522360960922298374/03522360960922298374/1Sx0jhdpEpnNIydS4rnN4kHSJtU1EyWka?e=view&authuser=0&nonce=gcrocepgbb17m&user=03522360960922298374&hash=tfhgbs86ka6divo3llbvp93mg4csvb38")
     no-repeat center/ cover;
@@ -55,7 +55,7 @@ button {
   justify-content: center;
   display: block;
   color: #fff;
-  background: #eb7134;
+  background: #808080;
   font-size: 1em;
   font-weight: bold;
   margin-top: 20px;
@@ -76,7 +76,7 @@ button:hover {
   transition: 0.8s ease-in-out;
 }
 .login label {
-  color: #eb7134;
+  color: #99918c;
   transform: scale(0.6);
 }
 

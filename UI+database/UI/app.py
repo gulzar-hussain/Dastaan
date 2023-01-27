@@ -6,12 +6,12 @@ from flask import Flask, render_template, abort, request
 import psycopg2
 import psycopg2.extras
 from geopy.geocoders import Nominatim
-from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer
-from chatterbot.trainers import ListTrainer
+# from chatterbot import ChatBot
+# from chatterbot.trainers import ChatterBotCorpusTrainer
+# from chatterbot.trainers import ListTrainer
 
-bot = ChatBot("DaastanGo")
-trainer=ListTrainer(bot)
+# bot = ChatBot("DaastanGo")
+# trainer=ListTrainer(bot)
 # trainer.train(['What is your name?', 'DaastanGo'])
 # trainer.train(['Can you tell me about Empress Market', 'Sure. what would you like to know about it' ])
 # trainer.train(['its history', 'Empress Market'])
@@ -66,7 +66,7 @@ def login():
     return render_template('login.html')
 @app.route('/dashboard')
 def getdashboard():
-    return render_template('dashboard.html')
+    return render_template('index.html')
 @app.route('/location')
 def getlocation():
     return render_template('location.html')
