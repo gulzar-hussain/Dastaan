@@ -35,7 +35,6 @@ def get_db_connection():
 
 app = Flask(__name__, template_folder='Template', static_folder="static")
 
-
 def getLocation(address):
     geolocator = Nominatim(user_agent="Your_Name")
     location = geolocator.geocode(address)
@@ -76,6 +75,72 @@ def getViewStory():
 @app.route("/addstory")
 def getAddStory():
     return render_template('addpersonalstory.html')
+@app.route('/newuser', methods=['POST','GET'])
+def addUser():
+    if request.method == 'POST':
+        username = request.form['username']
+        first_name = request.form['first']
+        last_name = request.form['last']
+        email = request.form['email']
+        password = request.form['pswd']
+        
+        conn, cur = get_db_connection()
+        query = '''
+        INSERT INTO users (username , first_name ,last_name , "password",email)
+        SELECT %s, %s, %s, %s, %s
+        WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = %s);
+        '''
+        values = (username, first_name, last_name,password,email,email)
+        try:
+            cur.execute(query,values)
+            conn.commit()
+            cur.close()
+            conn.close()
+            return render_template("login.html")
+        
+        except:
+            conn.rollback()
+            print("Message ---> error")
+            cur.close()
+            conn.close()
+            return render_template("login.html")
+
+@app.route('/loginuser', methods=['POST','GET'])
+def login_user():
+    if request.method == 'POST':
+        email = request.form['email1']
+        password = request.form['pswd1']
+        
+        conn, cur = get_db_connection()
+        query = '''
+        SELECT * FROM users
+        WHERE email = %s AND password = %s;
+        '''
+        values = (email,password)     
+        
+        # return render_template("dashboard.html")
+        try:
+            cur.execute(query,values)
+            conn.commit()
+            rows = cur.fetchall()
+            if len(rows) > 0:
+                print("Query executed successfully.")
+                cur.close()
+                conn.close()
+                return render_template("dashboard.html")
+            else:
+                print("incorrect email or password.")
+                cur.close()
+                conn.close()
+                return render_template("login.html")
+        except:
+            conn.rollback()
+            print("Query execution failed.")
+            cur.close()
+            conn.close()
+            return render_template("login.html")
+        
+
 @app.route('/getstory', methods=['POST','GET'])
 def getStory():
     if request.method == 'POST':

@@ -38,11 +38,11 @@ label {
 }
 input {
   width: 60%;
-  height: 20px;
+  height: 10px;
   background: #e0dede;
   justify-content: center;
   display: flex;
-  margin: 20px auto;
+  margin: 10px auto;
   padding: 10px;
   border: none;
   outline: none;
