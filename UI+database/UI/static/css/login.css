@@ -54,8 +54,8 @@ button {
   margin: 10px auto;
   justify-content: center;
   display: block;
-  color: #fff;
-  background: #808080;
+  color: #f0eeec;
+  background: #cfa288;
   font-size: 1em;
   font-weight: bold;
   margin-top: 20px;
@@ -78,10 +78,11 @@ button:hover {
 .login label {
   color: #99918c;
   transform: scale(0.6);
+  padding: 10px;
 }
 
 #chk:checked ~ .login {
-  transform: translateY(-500px);
+  transform: translateY(-600px);
 }
 #chk:checked ~ .login label {
   transform: scale(1);
