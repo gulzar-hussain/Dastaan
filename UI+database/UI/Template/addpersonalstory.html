@@ -93,12 +93,9 @@
         <option value="Teen Talwar">Teen Talwar</option>
         <option value="Clifton">Clifton</option>
         <option value="National Museum Of Pakistan">National Museum Of Pakistan</option> 
+        <option value="Saeed Manzil">Saeed Manzil</option> 
         
       </select>
-      <br>
-      <label for="attachment">Image</label>
-        <input type="file" id="myFile" name="attachment">
-        
       <br>
       <label for="description">Enter your story</label>
       <br>
@@ -112,7 +109,52 @@
   <!-- <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3620.478110646292!2d67.03085311440064!3d24.84751518406003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33dd84b5b4d7b%3A0x37de022366f8096f!2sFrere%20Hall!5e0!3m2!1sen!2s!4v1668078843170!5m2!1sen!2s" width="3600" height="1450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
 
 </div> 
-  
+<div class="container">
+      <div class="row">
+          <div class="col-lg-12">
+              <p>
+                  {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                   {% for message in messages %}
+                     <div class="alert alert-success">
+                      <strong>{{ message }}</strong>
+                    </div>
+                   {% endfor %}
+                    {% endif %}
+                  {% endwith %}
+                 </p>
+    <div>
+     <!-- File upload form -->
+     <form method="post" action="/upload" enctype="multipart/form-data" class="form-inline">
+      <div class="form-group">
+                        <label>Choose Images: </label>
+                        <input type="file" name="files[]" id="fileInput" class="form-control" multiple >
+                   </div>
+                   <input type="submit" name="submit" class="btn btn-success" value="UPLOAD"/>
+               </form>
+    </div>
+    </div>
+   </div>
+  </div>
+  <script>
+  $(document).ready(function(){
+   // File type validation
+      $("#fileInput").change(function(){
+          var fileLength = this.files.length;
+          var match= ["image/jpeg","image/png","image/jpg","image/gif"];
+          var i;
+          for(i = 0; i < fileLength; i++){ 
+              var file = this.files[i];
+              var imagefile = file.type;
+              if(!((imagefile==match[0]) || (imagefile==match[1]) || (imagefile==match[2]) || (imagefile==match[3]))){
+                  alert('Please select a valid image file (JPEG/JPG/PNG/GIF).');
+                  $("#fileInput").val('');
+                  return false;
+              }
+          }
+      });
+  });
+  </script>
 
 </body>
 </html>
