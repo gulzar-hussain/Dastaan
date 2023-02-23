@@ -18,6 +18,7 @@
       <!-- <a  href="/location">location</a> -->
       <a href="/addstory">Add Personal Story</a>
       <a href="/viewstory">View Personal Story</a>
+      <a href="/images">Images</a>
 
     </div>
   
@@ -66,16 +67,13 @@
   <div class="container">
     <form name = "getstory" action="getstory" method = "POST">
   
-        <label for="year">Year</label>
-        <select id="year" name="year">
-          <option value=""></option>
-          <option value="1947">1947</option>
-          <option value="1950">1950</option>
-          <option value="1990">1990</option>
-          <option value="1999">1999</option>
-          <option value="2000">2000</option>
-          <option value="2011">2011</option>
-        </select>
+      <label for="year">Select year:</label>
+      <input list="year" name="year">
+      <datalist id="year">
+        {% for year in years %}
+          <option value="{{ year }}">
+        {% endfor %}
+      </datalist>
         <br>
         <label for="tags">Tags</label>
         <select id="tags" name="tags">
@@ -98,6 +96,7 @@
         <option value="Teen Talwar">Teen Talwar</option>
         <option value="Clifton">Clifton</option> 
         <option value="National Museum Of Pakistan">National Museum Of Pakistan</option> 
+        <option value="Saeed Manzil">Saeed Manzil</option> 
         
       </select>
       
@@ -109,7 +108,11 @@
         <br>
 
         {% for item in data %}
-        <textarea id="mystory" name="description"  style="height:200px">{{item[0]}}</textarea>
+        <textarea id="mystory" name="description"  style="height:200px">{{item}}</textarea>
+        {% endfor %}
+
+        {% for img in image %}
+        <img src="{{ url_for('static', filename='uploads/' + img) }}">
         {% endfor %}
     </form>
   </div>
