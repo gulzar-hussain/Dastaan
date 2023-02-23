@@ -1,7 +1,7 @@
 import dashboard
 import location
 import personalstory
-from flask import Flask, render_template, abort, request,  redirect, flash
+from flask import Flask, render_template, abort, request, redirect, url_for
 import psycopg2
 import psycopg2.extras
 from geopy.geocoders import Nominatim
@@ -77,11 +77,13 @@ def getLocation(address):
 
 
 @app.route('/')
-def login():
-    return render_template('login.html')
-@app.route('/dashboard')
 def getdashboard():
     return render_template('index.html')
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 @app.route('/location')
 def getlocation():
     return render_template('location2.html')
