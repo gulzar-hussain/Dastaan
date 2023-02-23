@@ -84,17 +84,13 @@ def getdashboard():
     return render_template('index.html')
 @app.route('/location')
 def getlocation():
-    return render_template('location.html')
+    return render_template('location2.html')
 @app.route("/viewstory")
 def getViewStory():
     return render_template('viewStory.html')
 @app.route("/addstory")
 def getAddStory():
     return render_template('addpersonalstory.html')
-@app.route("/images")
-def images():
-    return render_template('images.html')
-
 @app.route('/newuser', methods=['POST','GET'])
 def addUser():
     if request.method == 'POST':
