@@ -93,6 +93,25 @@ def getViewStory():
 @app.route("/addstory")
 def getAddStory():
     return render_template('addpersonalstory.html')
+@app.route("/searchlocations", methods=['POST','GET'])
+def searchLocation():
+    print('here')
+    if request.method == 'POST':
+        location = request.form['location_name']
+        location = location.lower()
+        print(location)
+        try:
+            conn, cur = get_db_connection()
+            query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
+            values = (location,)
+            cur.execute(query, values)
+            stories = cur.fetchone()
+            print(stories)
+            conn.close()
+        except Exception as error:
+            print(error)
+    return render_template('searchlocations.html')
+
 @app.route('/newuser', methods=['POST','GET'])
 def addUser():
     if request.method == 'POST':
