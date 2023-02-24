@@ -1,6 +1,7 @@
 import dashboard
 import location
 import personalstory
+import openai
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
@@ -46,6 +47,8 @@ def get_db_connection():
 
 app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = 'DastaanGo'
+openai.api_key = "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"
+
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -179,7 +182,6 @@ def searchlocations():
         except Exception as error:
             print(error)
     return render_template('searchlocations.html')
-
 
 @app.route('/guide')
 def guide():
@@ -399,7 +401,51 @@ def getStory():
             cur.close()
             conn.close()
             return render_template("viewStory.html", years=years)
+@app.route('/add', methods=['POST'])
+def AddStory():
+    # if 'user_id' in session:
+    #     return render_template('user_index.html')
+    if request.method == 'POST':
+        year = request.form['timeline']
+        tag = request.form['tags']
+        location = request.form['location']
+        description = request.form['description']
+        conn, cur = get_db_connection()
+        ### ADDS LOCATION
+        
+        
+        
+        add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year) VALUES 
+        (%s,%s ,%s,(SELECT id FROM locations WHERE location = %s),%s)'''
+        values = (tag, description,
+                  '7de7367c-56f4-491f-9f91-38b1b693decc', location, year)
+        cur.execute(add_story, values)
+        conn.commit()
 
+        cur.close()
+        conn.close()
+        return render_template('viewStory.html')
+    
+@app.route("/upload",methods=["POST","GET"])
+def upload():
+    conn, cur = get_db_connection()
+    now = datetime.now()
+    
+    print(now)
+    if request.method == 'POST':
+        files = request.files.getlist('files[]')
+        user_id = session['user_id']
+        print(user_id)
+        for file in files:
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                cur.execute("INSERT INTO images (id, file_name, uploaded_on) VALUES (%s, %s,%s)",[user_id,filename, now])
+                conn.commit()
+        cur.close()  
+        conn.close() 
+        flash('File(s) successfully uploaded')    
+    return redirect('/addstory')
 
 @app.route("/get")
 def get_bot_response():
