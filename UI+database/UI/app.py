@@ -338,19 +338,18 @@ def upload():
     print(now)
     if request.method == 'POST':
         files = request.files.getlist('files[]')
-        story_id = 12
-        #print(files)
+        user_id = session['user_id']
+        print(user_id)
         for file in files:
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                cur.execute("INSERT INTO images (id, file_name, uploaded_on) VALUES (%s, %s,%s)",[story_id,filename, now])
+                cur.execute("INSERT INTO images (id, file_name, uploaded_on) VALUES (%s, %s,%s)",[user_id,filename, now])
                 conn.commit()
-            print(file)
         cur.close()  
         conn.close() 
         flash('File(s) successfully uploaded')    
-    return redirect('/images')
+    return redirect('/addstory')
 
 @app.route("/get")
 def get_bot_response():
