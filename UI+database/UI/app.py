@@ -1,13 +1,16 @@
 import dashboard
 import location
 import personalstory
-from flask import Flask, render_template, abort, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
 import psycopg2.extras
 from geopy.geocoders import Nominatim
-
+from psycopg2 import connect, sql
 from werkzeug.utils import secure_filename
 import os
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+from flask_mail import Mail, Message
 #import magic
 import urllib.request
 from datetime import datetime
@@ -40,7 +43,24 @@ def get_db_connection():
     return conn,cur
 
 app = Flask(__name__, template_folder='Template', static_folder="static")
-app.secret_key = "caircocoders-ednalan"
+app.secret_key = 'DastaanGo'
+
+# Flask-Mail configuration
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+app.config['MAIL_MAX_EMAILS'] = None
+app.config['MAIL_ASCII_ATTACHMENTS'] = False
+
+# Initialize Flask-Mail
+mail = Mail(app)
+
+# Initialize URLSafeTimedSerializer
+ts = URLSafeTimedSerializer(app.secret_key)
+
 '''
 For uploading multiple images
 '''
@@ -75,6 +95,9 @@ def getLocation(address):
 # )
 # location_by_key = {location.key: location for location in locations}
 
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 @app.route('/')
 def dashboard():
@@ -83,6 +106,12 @@ def dashboard():
 @app.route('/login')
 def login():
     return render_template('login.html')
+@app.route("/dashboard")
+def dashboard():
+    if "user_id" in session:
+        return render_template("dashboard.html")
+    else:
+        return render_template("index.html")
 
 @app.route('/location')
 def getlocation():
@@ -93,6 +122,7 @@ def getViewStory():
 @app.route("/addstory")
 def getAddStory():
     return render_template('addpersonalstory.html')
+
 @app.route("/searchlocations", methods=['POST','GET'])
 def searchlocations():
     print('here')
@@ -105,9 +135,10 @@ def searchlocations():
             query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
             values = (location,)
             cur.execute(query, values)
-            stories = cur.fetchone()
+            stories = cur.fetchall()
             print(stories)
             conn.close()
+            return render_template('searchlocations.html')
         except Exception as error:
             print(error)
     return render_template('searchlocations.html')
@@ -121,73 +152,121 @@ def map():
     return render_template("map.html")
 @app.route('/newuser', methods=['POST','GET'])
 def addUser():
+
+# User registration route
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     if request.method == 'POST':
+        # Get form data
         username = request.form['username']
-        first_name = request.form['first']
-        last_name = request.form['last']
         email = request.form['email']
         password = request.form['pswd']
+        first_name = request.form['first']
+        last_name = request.form['last']
+        is_moderator = False
+        is_verified = False
         
+        # Generate password hash
+        password_hash = generate_password_hash(password)
+        
+        # Create cursor
         conn, cur = get_db_connection()
-        query = '''
-        INSERT INTO users (username , first_name ,last_name ,password,email)
-        SELECT %s, %s, %s, %s, %s
-        WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = %s);
-        '''
-        # salt = bcrypt.gensalt()
-        # pswd = hash_password(password,salt)
-        values = (username, first_name, last_name,password,email,email)
-        try:
-            cur.execute(query,values)
-            conn.commit()
-            cur.close()
-            conn.close()
-            return render_template("login.html")
-        
-        except:
-            conn.rollback()
-            print("Message ---> error")
-            cur.close()
-            conn.close()
-            return render_template("login.html")
 
-@app.route('/loginuser', methods=['POST','GET'])
-def login_user():
-    if request.method == 'POST':
-        email = request.form['email1']
-        password = request.form['pswd1']
-        
-        conn, cur = get_db_connection()
-        query = '''
-        SELECT password FROM users
-        WHERE email = %s;
-        '''
-        values = (email,)     
-        
-        # return render_template("dashboard.html")
-        try:
-            cur.execute(query,values)
-            conn.commit()
-            pswd = cur.fetchone()
-            if password == pswd[0]:
-                print("Login successful.")
-                cur.close()
-                conn.close()
-                return render_template("dashboard.html")
-            else:
-                print("Login failed.")
-                print("incorrect email or password.")
-                cur.close()
-                conn.close()
-                return render_template("login.html")
+        # Check if email is already registered
+        cur.execute('SELECT * FROM users WHERE email = %s', (email,))
+        user = cur.fetchone()
+
+        if user:
+            flash('Email is already registered, please use another email.', 'danger')
+            return redirect(url_for('register'))
+
+        # Insert new user into database
+        cur.execute('INSERT INTO users (username, email, password, first_name, last_name, is_moderator, is_verified) VALUES (%s, %s, %s, %s, %s, %s, %s)', 
+                    (username, email, password_hash, first_name, last_name, is_moderator, is_verified))
+        conn.commit()
+
+        # Generate email verification token
+        token = ts.dumps(email, salt='email-verify')
+
+        # Create email message
+        subject = 'Verify Your Email'
+        recipient = email
+        url = url_for('verify_email', token=token, _external=True)
+        html = render_template('verify_email.html', url=url)
+        message = Message(subject=subject, recipients=[recipient], html=html)
+
+        # Send email
+        mail.send(message)
+
+        flash('Registration successful. Please check your email to verify your account.', 'success')
+        return redirect(url_for('login'))
     
-        except:
-            conn.rollback()
-            print("Query execution failed.")
-            cur.close()
-            conn.close()
-            return render_template("login.html")
-        
+    return render_template('login.html')
+
+# User login route
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Get form data
+        email = request.form['email']
+        password = request.form['password']
+
+        # Create cursor
+        conn, cur = get_db_connection()
+
+        # Get user by email
+        cur.execute('SELECT * FROM users WHERE email = %s', (email,))
+        user = cur.fetchone()
+
+        if user:
+            # Verify password hash
+            if check_password_hash(user[4], password):
+                # Set session variables
+                session['user_id'] = user[0]
+                session['is_moderator'] = user[6]
+                session['is_verified'] = user[7]
+
+                flash('Login successful.', 'success')
+                conn.close()
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Invalid email or password.', 'danger')
+        else:
+            flash('Invalid email or password.', 'danger')
+    
+    return render_template('login.html')
+
+@app.route("/verify/<token>")
+def verify_email(token):
+    conn,cur = get_db_connection()
+    
+    cur.execute(sql.SQL("SELECT * FROM users WHERE token = {}").format(
+        sql.Literal(token)
+    ))
+    user = cur.fetchone()
+    
+    if user:
+        cur.execute(sql.SQL("UPDATE users SET is_verified = true, token = null WHERE id = {}").format(
+            sql.Literal(user[0])
+        ))
+        conn.commit()
+        flash("Email verification successful! You can now login.", "success")
+    else:
+        flash("Invalid token. Please contact support.", "danger")
+    cur.close()
+    conn.close()
+    return redirect(url_for("login"))
+
+@app.route("/logout")
+def logout():
+    session.pop("user_id", None)
+    session.pop("is_moderator", None)
+    flash("Logout successful!", "success")
+    return redirect(url_for("home"))
+
+    
+    
+    
 
 @app.route('/getstory', methods=['POST','GET'])
 def getStory():

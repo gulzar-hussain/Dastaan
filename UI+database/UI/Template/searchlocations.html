@@ -57,11 +57,17 @@
                         <!-- To make this form functional, sign up at-->
                         <!-- https://startbootstrap.com/solution/contact-forms-->
                         <!-- to get an API token!-->
-                        <form class="form-signup" name = "searchlocations" action="'searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
+                        <!-- <form  name = "searchlocations" action="/searchlocations" method = "POST">
+                            <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
+                            <div ><button  id="submitButton" type="submit" value=" submit">Search</button></div>
+                        </form> -->
+                        <form class="form-signup" name = "searchlocations" action="'/searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
                             <!-- Email address input-->
                             <div class="row input-group-newsletter">
                                 <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." /></div>
                                 <div class="col-auto"><button class="btn btn-primary disabled" id="submitButton" type="submit">Search</button></div>
+                                <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
+                                <div class="col-auto"><button class="btn btn-primary disabled" id="submitButton" type="submit" value = "submit">Search</button></div>
                             </div>
                         
                             

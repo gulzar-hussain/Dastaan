@@ -29,16 +29,16 @@ def get_db_connection():
 '''
 Search location databse retrival
 '''
-# location = 'SAeED Manzil'
-# location = location.lower()
-# print(location)
-# try:
-#     conn, cur = get_db_connection()
-#     query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
-#     values = (location,)
-#     cur.execute(query, values)
-#     stories = cur.fetchall()
-#     print(stories)
-#     conn.close()
-# except Exception as error:
-#     print(error)
+location = 'SAeED Manzil'
+location = location.lower()
+print(location)
+try:
+    conn, cur = get_db_connection()
+    query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
+    values = (location,)
+    cur.execute(query, values)
+    stories = cur.fetchall()
+    print(stories)
+    conn.close()
+except Exception as error:
+    print(error)

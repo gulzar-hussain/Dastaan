@@ -19,7 +19,7 @@
 		<input type="checkbox" id="chk" aria-hidden="true">
 
 			<div class="signup">
-				<form name = "newuser" action="newuser" method = "POST">
+				<form name = "register" action="register" method = "POST">
 					<label for="chk" aria-hidden="true">Sign up</label>
 					<input type="text" name="username" placeholder="User name" required="">
 					<input type="text" name="first" placeholder="first name" required="">
@@ -33,10 +33,10 @@
 			</div>
 
 			<div class="login">
-				<form name = "loginuser" action="loginuser" method = "POST">
+				<form name = "login" action="login" method = "POST">
 					<label for="chk" aria-hidden="true">Login</label>
-					<input type="email" name="email1" placeholder="Email" required="">
-					<input type="password" name="pswd1" placeholder="Password" required="">
+					<input type="email" name="email" placeholder="Email" required="">
+					<input type="password" name="password" placeholder="Password" required="">
 					<a href="/dashboard">
 						<button>Login</button>
 					</a>
