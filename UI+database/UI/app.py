@@ -7,7 +7,7 @@ import psycopg2
 import psycopg2.extras
 from geopy.geocoders import Nominatim
 from psycopg2 import connect, sql
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename, send_from_directory
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from flask_mail import Mail, Message
@@ -29,8 +29,9 @@ from datetime import datetime
 # trainer.train("chatterbot.corpus.english")
 #!/usr/bin/python
 
+
 def get_db_connection():
-    
+
     conn = None
     conn = psycopg2.connect(
         database='aztabiei',
@@ -40,7 +41,8 @@ def get_db_connection():
         port='5432'
     )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    return conn,cur
+    return conn, cur
+
 
 app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = 'DastaanGo'
@@ -67,10 +69,10 @@ For uploading multiple images
 UPLOAD_FOLDER = 'C:/Users/HU-Student/Documents/GitHub/Dastaan/UI+database/UI/static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+
+
 def allowed_file(filename):
- return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def getLocation(address):
@@ -78,6 +80,8 @@ def getLocation(address):
     location = geolocator.geocode(address)
     return location
 
+
+flagforlocation = False
 
 # class Location:
 #     def __init__(self, key, name, lat, lng):
@@ -98,63 +102,152 @@ def getLocation(address):
 @app.route("/", methods=['GET', 'POST'])
 def dashboard():
     if request.method == 'POST':
-        location = request.form['location_name']
-        location = location.lower()
-        print(location)
-        try:
-            conn, cur = get_db_connection()
-            query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
-            values = (location,)
-            cur.execute(query, values)
-            stories = cur.fetchall()
-            print(stories)
-            conn.close()
+            location = request.form['location_name']
+            location = location.lower()
+            print(location)
+            try:
+                conn, cur = get_db_connection()
+                query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
+                values = (location,)
+                cur.execute(query, values)
+                stories = cur.fetchall()
+                print(stories)
+                conn.close()
+                return render_template('searchlocations.html', data=stories)
+            except Exception as error:
+                print(error)
             return render_template('searchlocations.html')
-        except Exception as error:
-            print(error)
-        return render_template('searchlocations.html')
+    if 'user_id' in session:
+        return render_template('index2.html')
+    
     return render_template('index.html')
 
+@app.route('/image/<filename>')
+def get_image(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 @app.route('/location')
-def getlocation():
+def getlocations():
+    # Get the story from the database based on the story_id
+    # Render the HTML page with the story data
+    # try:
+    #     print("hello")
+    #     story_id = '49'
+    #     conn, cur = get_db_connection()
+    #     cur.execute("SELECT * FROM stories WHERE id = %s", (story_id,))
+    #     story = cur.fetchone()
+    #     print(story)
+    #     cur.execute("SELECT * FROM images WHERE story_id = %s", (story_id,))
+    #     images = cur.fetchall()
+    #     print(images)
+    #     cur.close()
+    #     conn.close()
+
+    #     return render_template('location2.html', story=story, images=images)
+
+    # except Exception as error:
+    #         print(error)
+
     return render_template('location2.html')
+
+
 @app.route("/viewstory")
 def getViewStory():
     return render_template('viewStory.html')
+
+
 @app.route("/addstory")
 def getAddStory():
     return render_template('addpersonalstory.html')
 
-@app.route("/searchlocations", methods=['POST','GET'])
+
+@app.route("/searchlocations", methods=['POST', 'GET'])
 def searchlocations():
-    print('here')
     if request.method == 'POST':
         location = request.form['location_name']
         location = location.lower()
         print(location)
         try:
             conn, cur = get_db_connection()
-            query = 'SELECT tag, description FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
+            query = 'SELECT * FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
             values = (location,)
             cur.execute(query, values)
             stories = cur.fetchall()
             print(stories)
             conn.close()
-            return render_template('searchlocations.html',data = stories)
+            return render_template('searchlocations.html', data=stories)
         except Exception as error:
             print(error)
     return render_template('searchlocations.html')
 
+
 @app.route('/guide')
 def guide():
     return render_template("guide.html")
+
 
 @app.route('/map')
 def map():
     return render_template("map.html")
 
 
+@app.route('/addingStory', methods=['POST', 'GET'])
+def addingStory():
+    conn, cur = get_db_connection()
+    now = datetime.now()
+    user_id = session['user_id']
+    if request.method == 'POST':
+        year = request.form['timeline']
+        tag = request.form['tag']
+        location = request.form['location_name']
+        description = request.form['story']
+
+        location_details = getLocation(location)
+        lat = location_details.latitude
+        longt = location_details.longitude
+        try:
+            cur.execute(
+                "INSERT INTO locations (longitude, latitude, location) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING", (lat, longt, location))
+            conn.commit()
+            print("Location added successfully!")
+        except psycopg2.Error as e:
+            conn.rollback()
+            print("Error: ", e)
+        add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year) VALUES 
+        (%s,%s ,%s,(SELECT id FROM locations WHERE location = %s),%s) RETURNING id'''
+        values = (tag, description, user_id, location, year)
+        cur.execute(add_story, values)
+        '''get id of the story that is just inserted to stories table above'''
+        story_id = cur.fetchone()[0]
+        conn.commit()
+
+        # image upload
+        print('uploading begins')
+        files = request.files.getlist('files[]')
+        print(files)
+        print('for loop begins')
+        for file in files:
+            print('inside for loop')
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                print('filename:', filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                print('filepath:', filepath)
+                file.save(filepath)
+                cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, %s,%s)", [
+                            filename, now, story_id])
+                conn.commit()
+        print('uploading ends')
+        flash('File(s) successfully uploaded')
+
+        cur.close()
+        conn.close()
+
+    return render_template('addUserStories.html')
+
 # User registration route
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -166,10 +259,10 @@ def register():
         last_name = request.form['last']
         is_moderator = False
         is_verified = False
-        
+
         # Generate password hash
         password_hash = generate_password_hash(password)
-        
+
         # Create cursor
         conn, cur = get_db_connection()
 
@@ -182,7 +275,7 @@ def register():
             return redirect(url_for('register'))
 
         # Insert new user into database
-        cur.execute('INSERT INTO users (username, email, password, first_name, last_name, is_moderator, is_verified) VALUES (%s, %s, %s, %s, %s, %s, %s)', 
+        cur.execute('INSERT INTO users (username, email, password, first_name, last_name, is_moderator, is_verified) VALUES (%s, %s, %s, %s, %s, %s, %s)',
                     (username, email, password_hash, first_name, last_name, is_moderator, is_verified))
         conn.commit()
 
@@ -201,10 +294,12 @@ def register():
 
         flash('Registration successful. Please check your email to verify your account.', 'success')
         return redirect(url_for('login'))
-    
+
     return render_template('login.html')
 
 # User login route
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -234,18 +329,19 @@ def login():
                 flash('Invalid email or password.', 'danger')
         else:
             flash('Invalid email or password.', 'danger')
-    
+
     return render_template('login.html')
+
 
 @app.route("/verify/<token>")
 def verify_email(token):
-    conn,cur = get_db_connection()
-    
+    conn, cur = get_db_connection()
+
     cur.execute(sql.SQL("SELECT * FROM users WHERE token = {}").format(
         sql.Literal(token)
     ))
     user = cur.fetchone()
-    
+
     if user:
         cur.execute(sql.SQL("UPDATE users SET is_verified = true, token = null WHERE id = {}").format(
             sql.Literal(user[0])
@@ -258,26 +354,25 @@ def verify_email(token):
     conn.close()
     return redirect(url_for("login"))
 
+
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
     session.pop("is_moderator", None)
     flash("Logout successful!", "success")
-    return redirect(url_for("home"))
+    return redirect(url_for("dashboard"))
 
-    
-    
-    
 
-@app.route('/getstory', methods=['POST','GET'])
+@app.route('/getstory', methods=['POST', 'GET'])
 def getStory():
     if request.method == 'POST':
         year = request.form['year']
         tag = request.form['tags']
         location = request.form['location']
-        
+
         conn, cur = get_db_connection()
-        cur.execute("SELECT file_name FROM images WHERE file_name = 'Saeed_Manzil.jpg'")
+        cur.execute(
+            "SELECT file_name FROM images WHERE file_name = 'Saeed_Manzil.jpg'")
         image = [row[0] for row in cur.fetchall()]
         print(image)
         query = '''
@@ -288,73 +383,29 @@ def getStory():
         years = [row[0] for row in cur.fetchall()]
         print(years)
         try:
-            cur.execute(query,values)
+            cur.execute(query, values)
             data = [row[0] for row in cur.fetchall()]
-            if  len(data) == 0:
+            if len(data) == 0:
                 data = [['No story found :(']]
             print(data)
             conn.commit()
-            
-            
+
             cur.close()
             conn.close()
-            return render_template("viewStory.html",data = data, years=years, image = image)
+            return render_template("viewStory.html", data=data, years=years, image=image)
         except:
             conn.rollback()
             print("failed.")
             cur.close()
             conn.close()
             return render_template("viewStory.html", years=years)
-@app.route('/add', methods=['POST'])
-def AddStory():
-    # if 'user_id' in session:
-    #     return render_template('user_index.html')
-    if request.method == 'POST':
-        year = request.form['timeline']
-        tag = request.form['tags']
-        location = request.form['location']
-        description = request.form['description']
-        conn, cur = get_db_connection()
-        ### ADDS LOCATION
-        
-        
-        
-        add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year) VALUES 
-        (%s,%s ,%s,(SELECT id FROM locations WHERE location = %s),%s)'''
-        values = (tag, description,
-                  '7de7367c-56f4-491f-9f91-38b1b693decc', location, year)
-        cur.execute(add_story, values)
-        conn.commit()
 
-        cur.close()
-        conn.close()
-        return render_template('viewStory.html')
-    
-@app.route("/upload",methods=["POST","GET"])
-def upload():
-    conn, cur = get_db_connection()
-    now = datetime.now()
-    
-    print(now)
-    if request.method == 'POST':
-        files = request.files.getlist('files[]')
-        user_id = session['user_id']
-        print(user_id)
-        for file in files:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                cur.execute("INSERT INTO images (id, file_name, uploaded_on) VALUES (%s, %s,%s)",[user_id,filename, now])
-                conn.commit()
-        cur.close()  
-        conn.close() 
-        flash('File(s) successfully uploaded')    
-    return redirect('/addstory')
 
 @app.route("/get")
 def get_bot_response():
     userText = request.args.get('msg')
     return str(bot.get_response(userText))
+
 
 if __name__ == "__main__":
     app.run(host='localhost', debug=True)

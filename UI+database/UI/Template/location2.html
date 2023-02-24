@@ -29,7 +29,7 @@
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
                             <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
-                            <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">Sign Up</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">Login/Sign Up</a></li>
                         </ul>
                     </ul>
                 </div>
@@ -42,53 +42,41 @@
             <div class="container px-4 px-lg-5">
                 <!-- Featured Project Row-->
                 <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
-                    <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="assets/img/bg-masthead.jpg" alt="..." /></div>
+                    <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="{{url_for('static', filename='images/imagesbuildings.jpg')}}" alt="..." /></div>
                     <div class="col-xl-4 col-lg-5">
                         <div class="featured-text text-center text-lg-left">
                             <h4>Location name</h4>
-                            <p class="text-black-50 mb-0">Location Information -------- adding stuff here from database</p>
+                            <p class="text-black-50 mb-0">Story Information </p>
+                           
+                            
+
                         </div>
                     </div>
                 </div>
-                <!-- Project One Row-->
-                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid" src="assets/img/demo-image-01.jpg" alt="..." /></div>
-                    <div class="col-lg-6">
-                        <div class="bg-black text-center h-100 project">
-                            <div class="d-flex h-100">
-                                <div class="project-text w-100 my-auto text-center text-lg-left">
-                                    <h4 class="text-white">Misty</h4>
-                                    <p class="mb-0 text-white-50">An example of where you can put an image of a project, or anything else, along with a description.</p>
-                                    <hr class="d-none d-lg-block mb-0 ms-0" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Project Two Row-->
-                <div class="row gx-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid" src="assets/img/demo-image-02.jpg" alt="..." /></div>
-                    <div class="col-lg-6 order-lg-first">
-                        <div class="bg-black text-center h-100 project">
-                            <div class="d-flex h-100">
-                                <div class="project-text w-100 my-auto text-center text-lg-right">
-                                    <h4 class="text-white">Mountains</h4>
-                                    <p class="mb-0 text-white-50">Another example of a project with its respective description. These sections work well responsively as well, try this theme on a small screen!</p>
-                                    <hr class="d-none d-lg-block mb-0 me-0" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                <table class="styled-table" id="tableId">
+                    <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr >
+                            <td>{{ story.tag }}</td>
+                            <td>{{ story.description }}</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+                {% for image in images %}
+                <img src="{{ url_for('get_image', filename=image[1]) }}" alt="Image">
+                {% endfor %}
         <!-- Signup-->
        
         <!-- Contact-->
        
-        <!-- Footer-->
-        <footer class="footer bg-black small text-center text-white-50"><div class="container px-4 px-lg-5">Copyright &copy; Your Website 2022</div></footer>
-        <!-- Bootstrap core JS-->
+       
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
         <script src="js/scripts.js"></script>
