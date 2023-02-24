@@ -183,11 +183,6 @@ def searchlocations():
             print(error)
     return render_template('searchlocations.html')
 
-@app.route('/guide')
-def guide():
-    return render_template("guide.html")
-
-
 @app.route('/map')
 def map():
     return render_template("map.html")
@@ -447,10 +442,36 @@ def upload():
         flash('File(s) successfully uploaded')    
     return redirect('/addstory')
 
-@app.route("/get")
-def get_bot_response():
-    userText = request.args.get('msg')
-    return str(bot.get_response(userText))
+# @app.route("/get")
+# def get_bot_response():
+#     userText = request.args.get('msg')
+#     return str(bot.get_response(userText))
+
+
+#Open ai chatbot
+@app.route("/guide", methods=("GET", "POST"))
+def guide():
+    if request.method == "POST":
+        animal = request.form["animal"]
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=generate_prompt(animal),
+            temperature=0.6,
+        )
+        return redirect(url_for("guide", result=response.choices[0].text))
+
+    result = request.args.get("result")
+    return render_template("guide.html", result=result)
+
+
+def generate_prompt(animal):
+    return """Where is this place?
+Animal: Empress Market
+Names: located in Saddar, Karachi, Pakistan
+Animal: {}
+Names:""".format(
+        animal.capitalize()
+    )
 
 
 if __name__ == "__main__":
