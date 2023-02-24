@@ -96,22 +96,13 @@ def getLocation(address):
 # location_by_key = {location.key: location for location in locations}
 
 @app.route("/")
-def index():
-    return render_template("index.html")
-
-@app.route('/')
 def dashboard():
     return render_template('index.html')
+
 
 @app.route('/login')
 def login():
     return render_template('login.html')
-@app.route("/dashboard")
-def dashboard():
-    if "user_id" in session:
-        return render_template("dashboard.html")
-    else:
-        return render_template("index.html")
 
 @app.route('/location')
 def getlocation():
