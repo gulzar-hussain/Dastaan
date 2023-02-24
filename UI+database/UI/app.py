@@ -77,7 +77,7 @@ def getLocation(address):
 
 
 @app.route('/')
-def getdashboard():
+def dashboard():
     return render_template('index.html')
 
 @app.route('/login')
@@ -94,7 +94,7 @@ def getViewStory():
 def getAddStory():
     return render_template('addpersonalstory.html')
 @app.route("/searchlocations", methods=['POST','GET'])
-def searchLocation():
+def searchlocations():
     print('here')
     if request.method == 'POST':
         location = request.form['location_name']
@@ -112,6 +112,13 @@ def searchLocation():
             print(error)
     return render_template('searchlocations.html')
 
+@app.route('/guide')
+def guide():
+    return render_template("guide.html")
+
+@app.route('/map')
+def map():
+    return render_template("map.html")
 @app.route('/newuser', methods=['POST','GET'])
 def addUser():
     if request.method == 'POST':

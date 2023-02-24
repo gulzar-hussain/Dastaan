@@ -20,16 +20,16 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
             <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="#page-top">Dastaan</a>
+                <a class="navbar-brand" href="#{{url_for('dashboard')}}">Dastaan</a>
                 <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/guide.html">Guide</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#signup">Sign Up</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">Sign Up</a></li>
                     </ul>
                 </div>
             </div>
@@ -60,34 +60,44 @@
                         <form class="form-signup" name = "searchlocations" action="'searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
                             <!-- Email address input-->
                             <div class="row input-group-newsletter">
-                                <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
+                                <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." /></div>
                                 <div class="col-auto"><button class="btn btn-primary disabled" id="submitButton" type="submit">Search</button></div>
                             </div>
-                            <!-- <div class="invalid-feedback mt-2" data-sb-feedback="emailAddress:required">An email is required.</div>
-                            <div class="invalid-feedback mt-2" data-sb-feedback="emailAddress:email">Email is not valid.</div> -->
-                            <!-- Submit success message-->
-                            <!---->
-                            <!-- This is what your users will see when the form-->
-                            <!-- has successfully submitted-->
-                            <div class="d-none" id="submitSuccessMessage">
-                                <div class="text-center mb-3 mt-2 text-white">
-                                    <div class="fw-bolder">successful!</div>
-                         
-                                </div>
-                            </div>
-                            <!-- Submit error message-->
-                            <!---->
-                            <!-- This is what your users will see when there is-->
-                            <!-- an error submitting the form-->
-                            <div class="d-none" id="submitErrorMessage"><div class="text-center text-danger mb-3 mt-2">Error sending message!</div></div>
+                        
+                            
                         </form>
                     </div>
+
+                
+                    <table class="styled-table">
+                        
+                        <tbody>
+                            <tr>
+                                <td>Tags</td>
+                                <td>Description</td>
+                            </tr>
+                            <tr class="active-row">
+                                <td>Tags</td>
+                                <td>Description</td>
+                            </tr>
+                            <tr>
+                                <td>Tags</td>
+                                <td>Description</td>
+                            </tr>
+                            <tr>
+                                <td>Tags</td>
+                                <td>Description</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                
                 </div>
             </div>
         </section>
        
         <!-- Footer-->
-        <footer class="footer bg-black small text-center text-white-50"><div class="container px-4 px-lg-5">Copyright &copy; Your Website 2022</div></footer>
+        
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
