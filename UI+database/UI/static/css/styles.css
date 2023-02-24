@@ -11722,6 +11722,7 @@ body {
 .styled-table th,
 .styled-table td {
     padding: 12px 15px;
+    
 }
 
 .styled-table tbody tr {
@@ -11730,6 +11731,12 @@ body {
 
 .styled-table tbody tr:nth-of-type(even) {
   background-color: #f3f3f3;
+  
+}
+
+.styled-table tbody tr:nth-of-type(odd) {
+  
+  color:#FFFF
 }
 
 .styled-table tbody tr.active-row {

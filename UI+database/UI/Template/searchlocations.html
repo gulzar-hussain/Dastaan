@@ -61,13 +61,12 @@
                             <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
                             <div ><button  id="submitButton" type="submit" value=" submit">Search</button></div>
                         </form> -->
-                        <form class="form-signup" name = "searchlocations" action="'/searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
+                        <form class="form-signup" name = "searchlocations" action="/searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
                             <!-- Email address input-->
                             <div class="row input-group-newsletter">
                                 <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." /></div>
-                                <div class="col-auto"><button class="btn btn-primary disabled" id="submitButton" type="submit">Search</button></div>
-                                <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
-                                <div class="col-auto"><button class="btn btn-primary disabled" id="submitButton" type="submit" value = "submit">Search</button></div>
+                                <div class="col-auto"><button class="btn btn-primary" id="submitButton" type="submit">Search</button></div>
+                                
                             </div>
                         
                             
@@ -78,22 +77,24 @@
                     <table class="styled-table">
                         
                         <tbody>
+                            {% for story in data %}
+                            <tr>
+                                <td>{{story[0]}}</td>
+                                <td>{{story[1]}}</td>
+                            </tr>
+                            {% endfor %}
+                            <!-- <tr class="active-row">
+                                <td>Tags</td>
+                                <td>Description</td>
+                            </tr>
                             <tr>
                                 <td>Tags</td>
                                 <td>Description</td>
                             </tr>
-                            <tr class="active-row">
-                                <td>Tags</td>
-                                <td>Description</td>
-                            </tr>
                             <tr>
                                 <td>Tags</td>
                                 <td>Description</td>
-                            </tr>
-                            <tr>
-                                <td>Tags</td>
-                                <td>Description</td>
-                            </tr>
+                            </tr> -->
                         </tbody>
                     </table>
                     

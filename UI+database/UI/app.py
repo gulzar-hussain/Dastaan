@@ -95,14 +95,25 @@ def getLocation(address):
 # )
 # location_by_key = {location.key: location for location in locations}
 
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def dashboard():
+    if request.method == 'POST':
+        location = request.form['location_name']
+        location = location.lower()
+        print(location)
+        try:
+            conn, cur = get_db_connection()
+            query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
+            values = (location,)
+            cur.execute(query, values)
+            stories = cur.fetchall()
+            print(stories)
+            conn.close()
+            return render_template('searchlocations.html')
+        except Exception as error:
+            print(error)
+        return render_template('searchlocations.html')
     return render_template('index.html')
-
-
-@app.route('/login')
-def login():
-    return render_template('login.html')
 
 @app.route('/location')
 def getlocation():
@@ -123,13 +134,13 @@ def searchlocations():
         print(location)
         try:
             conn, cur = get_db_connection()
-            query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
+            query = 'SELECT tag, description FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
             values = (location,)
             cur.execute(query, values)
             stories = cur.fetchall()
             print(stories)
             conn.close()
-            return render_template('searchlocations.html')
+            return render_template('searchlocations.html',data = stories)
         except Exception as error:
             print(error)
     return render_template('searchlocations.html')
@@ -141,8 +152,7 @@ def guide():
 @app.route('/map')
 def map():
     return render_template("map.html")
-@app.route('/newuser', methods=['POST','GET'])
-def addUser():
+
 
 # User registration route
 @app.route('/register', methods=['GET', 'POST'])
@@ -297,6 +307,8 @@ def getStory():
             return render_template("viewStory.html", years=years)
 @app.route('/add', methods=['POST'])
 def AddStory():
+    # if 'user_id' in session:
+    #     return render_template('user_index.html')
     if request.method == 'POST':
         year = request.form['timeline']
         tag = request.form['tags']
