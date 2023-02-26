@@ -48,7 +48,7 @@ def get_db_connection():
 app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = 'DastaanGo'
 openai.api_key = "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"
-
+username = ''
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -121,7 +121,7 @@ def dashboard():
                 print(error)
             return render_template('searchlocations.html')
     if 'user_id' in session:
-        return render_template('index2.html')
+        return render_template('index2.html',username = session['username'])
     
     return render_template('index.html')
 
@@ -184,7 +184,11 @@ def map():
 def addingStory():
     conn, cur = get_db_connection()
     now = datetime.now()
-    user_id = session['user_id']
+    try:
+        user_id = session['user_id']
+    except:
+        Message = 'You must be loged in to add a story'
+        
     if request.method == 'POST':
         year = request.form['timeline']
         tag = request.form['tag']
@@ -194,6 +198,7 @@ def addingStory():
         location_details = getLocation(location)
         lat = location_details.latitude
         longt = location_details.longitude
+        location = location.lower()
         try:
             cur.execute(
                 "INSERT INTO locations (longitude, latitude, location) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING", (longt,lat, location))
@@ -203,7 +208,7 @@ def addingStory():
             conn.rollback()
             print("Error: ", e)
         add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year) VALUES 
-        (%s,%s ,%s,(SELECT id FROM locations WHERE location = %s),%s) RETURNING id'''
+        (%s,%s ,%s,(SELECT id FROM locations WHERE LOWER(location) = %s),%s) RETURNING id'''
         values = (tag, description, user_id, location, year)
         cur.execute(add_story, values)
         '''get id of the story that is just inserted to stories table above'''
@@ -214,9 +219,9 @@ def addingStory():
         
         files = request.files.getlist('files[]')
         print(files)
-        print('for loop begins')
+        
         for file in files:
-            print('inside for loop')
+            
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 print('filename:', filename)
@@ -309,11 +314,11 @@ def login():
                 session['user_id'] = user[0]
                 session['is_moderator'] = user[6]
                 session['is_verified'] = user[7]
-
+                session['username'] = user[1]
                 flash('Login successful.', 'success')
                 conn.close()
                 # return redirect(url_for('dashboard', user = user[1]))
-                return render_template("index2.html", user = user[1])
+                return render_template("index2.html", username = session['username'])
             else:
                 
                 flash('Invalid email or password.', 'error')

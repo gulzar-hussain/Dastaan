@@ -20,6 +20,7 @@
             line-height: 1.5;
             margin-bottom: 30px;
             text-align: center;
+            color: white;
           }</style>
     </head>
     <body id="page-top">
@@ -54,7 +55,7 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5">
                     <div class="col-md-10 col-lg-8 mx-auto text-center">
-                        <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
+                        <!-- <i class="far fa-paper-plane fa-2x mb-2 text-white"></i> -->
                         
                         <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
                             {% for image in images %}
@@ -63,8 +64,9 @@
                             <div class="col-xl-4 col-lg-5">
                                 <div class="featured-text text-center text-lg-left">
                                     <h4>{{Location_name}}</h4>
+                                    <p class="text-black-50 mb-0">Category  - {{story['tag'].title()}} </p>
                                     <p class="text-black-50 mb-0">Timeline  -  {{story['year']}} </p>
-                                    <p class="text-black-50 mb-0">Category   {{story['tag']}} </p>
+                                    
                                    
                                     
         
