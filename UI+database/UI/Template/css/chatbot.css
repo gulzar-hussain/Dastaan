@@ -1,26 +1,27 @@
+/* chatbot css */
+
 @font-face {
   font-family: "ColfaxAI";
   src: url(https://cdn.openai.com/API/fonts/ColfaxAIRegular.woff2)
-      format("woff2"),
-    url(https://cdn.openai.com/API/fonts/ColfaxAIRegular.woff) format("woff");
+      format("woff2"),url(https://cdn.openai.com/API/fonts/ColfaxAIRegular.woff) format("woff");
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: "ColfaxAI";
-  src: url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff2) format("woff2"),
-    url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff) format("woff");
+  src: url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff2) format("woff2"),url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff) format("woff");
   font-weight: bold;
   font-style: normal;
 }
-body,
-input {
+.chatbot_body,
+.chatbot_submit,
+.chatbot_text {
   font-size: 16px;
   line-height: 24px;
   color: #353740;
   font-family: "ColfaxAI", Helvetica, sans-serif;
 }
-body {
+#chatbot_body {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,19 +30,19 @@ body {
 .icon {
   width: 34px;
 }
-h3 {
+#chatbot_heading {
   font-size: 32px;
   line-height: 40px;
   font-weight: bold;
   color: #202123;
   margin: 16px 0 40px;
 }
-form {
+#form_chatbot {
   display: flex;
   flex-direction: column;
   width: 320px;
 }
-input[type="text"] {
+#chatbot_text {
   padding: 12px 16px;
   border: 1px solid #10a37f;
   border-radius: 4px;
@@ -51,16 +52,16 @@ input[type="text"] {
   color: #8e8ea0;
   opacity: 1;
 }
-input[type="submit"] {
-  padding: 12px 0;
-  color: #fff;
-  background-color: #10a37f;
-  border: none;
-  border-radius: 4px;
-  text-align: center;
-  cursor: pointer;
+#chatbot_submit {
+  padding: 12px 0 !important;
+  color: #fff !important;
+  background-color: #10a37f !important;
+  border: none !important;
+  border-radius: 4px !important;
+  text-align: center !important;
+  cursor: pointer !important;
 }
-.result {
+#result {
   font-weight: bold;
   margin-top: 40px;
 }
