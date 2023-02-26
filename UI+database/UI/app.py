@@ -317,7 +317,7 @@ def login():
                 session['username'] = user[1]
                 flash('Login successful.', 'success')
                 conn.close()
-                # return redirect(url_for('dashboard', user = user[1]))
+                
                 return render_template("index2.html", username = session['username'])
             else:
                 
