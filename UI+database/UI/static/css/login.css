@@ -90,3 +90,31 @@ button:hover {
 #chk:checked ~ .signup label {
   transform: scale(0.6);
 }
+
+.alert {
+  margin-top: 20px;
+  display: flex;
+  /* flex-direction: column;
+  justify-content: center;
+  align-items: center; */
+}
+
+.alert-success {
+  /* background-color: #4CAF50; */
+  color: #4CAF50;
+  padding: 12px 20px;
+  /* text-align: center; */
+  margin-bottom: 10px;
+  /* border-radius: 5px; */
+  font-weight: bold;
+}
+
+.alert-error {
+  /* background-color: #f44336; */
+  color: #f44336;
+  padding: 12px 20px;
+  /* text-align: center; */
+  margin-bottom: 10px;
+  /* border-radius: 5px; */
+  font-weight: bold;
+}

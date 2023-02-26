@@ -110,7 +110,7 @@ def dashboard():
             print(location)
             try:
                 conn, cur = get_db_connection()
-                query = 'SELECT tag, description, year FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
+                query = 'SELECT * FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
                 values = (location,)
                 cur.execute(query, values)
                 stories = cur.fetchall()
@@ -127,42 +127,32 @@ def dashboard():
 
 @app.route('/image/<filename>')
 def get_image(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    print(filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, environ=request.environ)
 
-@app.route('/location')
-def getlocations():
+@app.route('/location/<int:story_id>')
+def getlocations(story_id):
     # Get the story from the database based on the story_id
     # Render the HTML page with the story data
-    # try:
-    #     print("hello")
-    #     story_id = '49'
-    #     conn, cur = get_db_connection()
-    #     cur.execute("SELECT * FROM stories WHERE id = %s", (story_id,))
-    #     story = cur.fetchone()
-    #     print(story)
-    #     cur.execute("SELECT * FROM images WHERE story_id = %s", (story_id,))
-    #     images = cur.fetchall()
-    #     print(images)
-    #     cur.close()
-    #     conn.close()
+    try:
+        conn, cur = get_db_connection()
+        cur.execute("SELECT * FROM stories WHERE id = %s", (story_id,))
+        story = cur.fetchone()
+        location_id = story['location_id']
+        cur.execute("SELECT * FROM images WHERE story_id = %s", (story_id,))
+        images = cur.fetchall()
+        cur.execute("SELECT UPPER(location) FROM locations WHERE id = %s", (location_id,))
+        location = cur.fetchone()[0]
+        print(location)
+        cur.close()
+        conn.close()
 
-    #     return render_template('location2.html', story=story, images=images)
+        return render_template('viewstory1.html', story=story, images=images, Location_name = location)
 
-    # except Exception as error:
-    #         print(error)
+    except Exception as error:
+            print(error)
 
-    return render_template('location2.html')
-
-
-@app.route("/viewstory")
-def getViewStory():
-    return render_template('viewStory.html')
-
-
-@app.route("/addstory")
-def getAddStory():
-    return render_template('addpersonalstory.html')
-
+    return render_template('viewstory1.html')
 
 @app.route("/searchlocations", methods=['POST', 'GET'])
 def searchlocations():
@@ -176,6 +166,8 @@ def searchlocations():
             values = (location,)
             cur.execute(query, values)
             stories = cur.fetchall()
+            if len(stories) == 0:
+                flash('No stories found','error')
             print(stories)
             conn.close()
             return render_template('searchlocations.html', data=stories)
@@ -204,7 +196,7 @@ def addingStory():
         longt = location_details.longitude
         try:
             cur.execute(
-                "INSERT INTO locations (longitude, latitude, location) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING", (lat, longt, location))
+                "INSERT INTO locations (longitude, latitude, location) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING", (longt,lat, location))
             conn.commit()
             print("Location added successfully!")
         except psycopg2.Error as e:
@@ -219,7 +211,7 @@ def addingStory():
         conn.commit()
 
         # image upload
-        print('uploading begins')
+        
         files = request.files.getlist('files[]')
         print(files)
         print('for loop begins')
@@ -234,7 +226,6 @@ def addingStory():
                 cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, %s,%s)", [
                             filename, now, story_id])
                 conn.commit()
-        print('uploading ends')
         flash('File(s) successfully uploaded')
 
         cur.close()
@@ -277,17 +268,17 @@ def register():
         conn.commit()
 
         # Generate email verification token
-        token = ts.dumps(email, salt='email-verify')
+        # token = ts.dumps(email, salt='email-verify')
 
-        # Create email message
-        subject = 'Verify Your Email'
-        recipient = email
-        url = url_for('verify_email', token=token, _external=True)
-        html = render_template('verify_email.html', url=url)
-        message = Message(subject=subject, recipients=[recipient], html=html)
+        # # Create email message
+        # subject = 'Verify Your Email'
+        # recipient = email
+        # url = url_for('verify_email', token=token, _external=True)
+        # html = render_template('verify_email.html', url=url)
+        # message = Message(subject=subject, recipients=[recipient], html=html)
 
-        # Send email
-        mail.send(message)
+        # # Send email
+        # mail.send(message)
 
         flash('Registration successful. Please check your email to verify your account.', 'success')
         return redirect(url_for('login'))
@@ -321,11 +312,14 @@ def login():
 
                 flash('Login successful.', 'success')
                 conn.close()
-                return redirect(url_for('dashboard'))
+                # return redirect(url_for('dashboard', user = user[1]))
+                return render_template("index2.html", user = user[1])
             else:
-                flash('Invalid email or password.', 'danger')
+                
+                flash('Invalid email or password.', 'error')
         else:
-            flash('Invalid email or password.', 'danger')
+            flash('Invalid email or password.', 'error')
+                       
 
     return render_template('login.html')
 
@@ -356,7 +350,7 @@ def verify_email(token):
 def logout():
     session.pop("user_id", None)
     session.pop("is_moderator", None)
-    flash("Logout successful!", "success")
+    # flash("Logout successful!", "success")
     return redirect(url_for("dashboard"))
 
 
@@ -396,51 +390,6 @@ def getStory():
             cur.close()
             conn.close()
             return render_template("viewStory.html", years=years)
-@app.route('/add', methods=['POST'])
-def AddStory():
-    # if 'user_id' in session:
-    #     return render_template('user_index.html')
-    if request.method == 'POST':
-        year = request.form['timeline']
-        tag = request.form['tags']
-        location = request.form['location']
-        description = request.form['description']
-        conn, cur = get_db_connection()
-        ### ADDS LOCATION
-        
-        
-        
-        add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year) VALUES 
-        (%s,%s ,%s,(SELECT id FROM locations WHERE location = %s),%s)'''
-        values = (tag, description,
-                  '7de7367c-56f4-491f-9f91-38b1b693decc', location, year)
-        cur.execute(add_story, values)
-        conn.commit()
-
-        cur.close()
-        conn.close()
-        return render_template('viewStory.html')
-    
-@app.route("/upload",methods=["POST","GET"])
-def upload():
-    conn, cur = get_db_connection()
-    now = datetime.now()
-    
-    print(now)
-    if request.method == 'POST':
-        files = request.files.getlist('files[]')
-        user_id = session['user_id']
-        print(user_id)
-        for file in files:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                cur.execute("INSERT INTO images (id, file_name, uploaded_on) VALUES (%s, %s,%s)",[user_id,filename, now])
-                conn.commit()
-        cur.close()  
-        conn.close() 
-        flash('File(s) successfully uploaded')    
-    return redirect('/addstory')
 
 # @app.route("/get")
 # def get_bot_response():
@@ -466,10 +415,10 @@ def guide():
 
 def generate_prompt(animal):
     return """Where is this place?
-Animal: Empress Market
-Names: located in Saddar, Karachi, Pakistan
-Animal: {}
-Names:""".format(
+            Animal: Empress Market
+            Names: located in Saddar, Karachi, Pakistan
+            Animal: {}
+            Names:""".format(
         animal.capitalize()
     )
 

@@ -20,7 +20,7 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
             <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="#{{url_for('dashboard')}}">Dastaan</a>
+                <a class="navbar-brand" href="{{url_for('dashboard')}}">Dastaan</a>
                 <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars"></i>
@@ -29,7 +29,7 @@
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">Sign Up</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">login/signup</a></li>
                     </ul>
                 </div>
             </div>
@@ -82,17 +82,25 @@
 
 <!-- Create the table -->
 <table class="styled-table" id="tableId">
-    <thead>
-        <tr>
-            <th>Tag</th>
-            <th>Description</th>
-        </tr>
-    </thead>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="alert">
+                            {% for category, message in messages %}
+                                {% if category == 'error' %}
+                                    <li class="alert-danger">{{ message }}</li>
+                                {% elif category == 'success' %}
+                                    <li class="alert-success">{{ message }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
     <tbody>
         {% for story in data %}
         <tr >
-            <td>{{ story.tag }}</td>
-            <td>{{ story.description }}</td>
+            <td>{{ story.tag.title() }}</td>
+            <td>{{ story.description[:50] }}</td>
+            <td><a href="{{ url_for('getlocations', story_id= story.id) }}">View</a></td>
         </tr>
         {% endfor %}
     </tbody>
@@ -116,35 +124,19 @@
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+       
         <script>
-            function addRowHandlers() {
-                var table = document.getElementById("tableId");
-                var rows = table.getElementsByTagName("tr");
-                
-                for (i = 0; i < rows.length; i++) {
-                    var currentRow = table.rows[i];
-                    
-                    var createClickHandler = 
-                        function(row) 
-                        {
-                            return function() { 
-                                                    var cell = row.getElementsByTagName("td")[0];
-                                                    var id = cell.innerHTML;
-                                                    var url = "{{ url_for('getlocations')}}";
-
-                        // Redirect to the Flask route that renders the desired template
-                                                    window.location.href = url;
-                                             };
-                        };
-            
-                    currentRow.onclick = createClickHandler(currentRow);
-                }
-
-               
-            }
-            window.onload = addRowHandlers();
-            </script>
-        
+            // Get all the alert elements
+            var alerts = document.querySelectorAll('.alert');
+          
+            // Loop through each alert element
+            alerts.forEach(function(alert) {
+              // Set a timeout to remove the alert after 3 seconds
+              setTimeout(function() {
+                alert.remove();
+              }, 3000);
+            });
+          </script>
           
     </body>
 </html>

@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Add Stories</title>
+        <title>View Story</title>
         
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
@@ -15,6 +15,12 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+        <style>.description {
+            font-size: 18px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            text-align: center;
+          }</style>
     </head>
     <body id="page-top">
         <!-- Navigation-->
@@ -29,7 +35,7 @@
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('searchlocations')}}">Search Stories</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">login/signup</a></li>
                     </ul>
                 </div>
             </div>
@@ -49,39 +55,39 @@
                 <div class="row gx-4 gx-lg-5">
                     <div class="col-md-10 col-lg-8 mx-auto text-center">
                         <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
-                        <h2 class="text-white mb-5">Tell us your story!</h2>
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- * * SB Forms Contact Form * *-->
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- This form is pre-integrated with SB Forms.-->
-                        <!-- To make this form functional, sign up at-->
-                        <!-- https://startbootstrap.com/solution/contact-forms-->
-                        <!-- to get an API token!-->
                         
-                        <form class="form-signup" name = "addingStory" action="/addingStory" method = "POST" data-sb-form-api-token="API_TOKEN" enctype="multipart/form-data">
-                            <!-- Email address input-->
-                            <div class="row input-group-newsletter">
-                                <div class="row"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." /></div>
-                                <label>.</label>
-                                <div class="row"><input class="form-control" name = "timeline" id="timeline" type="text" placeholder="Timeline of your story..." value="" aria-label="Timeline of your story..." /></div>
-                                <label>.</label>
-                                <div class="row"><input class="form-control" name = "story" id="story" type="text" placeholder="Start writing your story..." value="" aria-label="Start writing your story..." /></div>
-                                <label>.</label>
-                                <div class="row"><input class="form-control" name = "tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag" /></div>
-                                
-                                <div class="row">
-                                    <label>Choose Images: </label>
-                                    <input type="file" name="files[]" id="fileInput" class="form-control" multiple >
+                        <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
+                            {% for image in images %}
+                            <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=image['file_name']) }}" alt="Image" /></div>
+                            {% endfor %}
+                            <div class="col-xl-4 col-lg-5">
+                                <div class="featured-text text-center text-lg-left">
+                                    <h4>{{Location_name}}</h4>
+                                    <p class="text-black-50 mb-0">Timeline  -  {{story['year']}} </p>
+                                    <p class="text-black-50 mb-0">Category   {{story['tag']}} </p>
+                                   
+                                    
+        
                                 </div>
-                                <label>.</label>
-                                <div class="row-auto"><button class="btn btn-primary" id="submitButton" type="submit">Upload</button></div>
-                                
                             </div>
-                        
+                        </div>
+                        <div class="container">
                             
-                        </form>
+                            <div class="description">
+                              {{ story['description'] }}
+                            </div>
+                            
+                          </div>
+                        
                     </div>
-            
+
+                
+                    <!-- Include jQuery library -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Define the click event handler -->
+
+ 
                       
                 
                 </div>
@@ -99,25 +105,7 @@
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
-        <script>
-            $(document).ready(function(){
-             // File type validation
-                $("#fileInput").change(function(){
-                    var fileLength = this.files.length;
-                    var match= ["image/jpeg","image/png","image/jpg","image/gif"];
-                    var i;
-                    for(i = 0; i < fileLength; i++){ 
-                        var file = this.files[i];
-                        var imagefile = file.type;
-                        if(!((imagefile==match[0]) || (imagefile==match[1]) || (imagefile==match[2]) || (imagefile==match[3]))){
-                            alert('Please select a valid image file (JPEG/JPG/PNG/GIF).');
-                            $("#fileInput").val('');
-                            return false;
-                        }
-                    }
-                });
-            });
-            </script>
+       
         
           
     </body>
