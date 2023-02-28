@@ -15,6 +15,9 @@ from flask_mail import Mail, Message
 #import magic
 import urllib.request
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # from chatterbot import ChatBot
 # from chatterbot.trainers import ChatterBotCorpusTrainer
@@ -46,9 +49,8 @@ def get_db_connection():
 
 
 app = Flask(__name__, template_folder='Template', static_folder="static")
-app.secret_key = 'DastaanGo'
-openai.api_key = "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"
-username = ''
+app.secret_key = os.environ.get('APP_SECRET_KEY')
+openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -69,8 +71,8 @@ ts = URLSafeTimedSerializer(app.secret_key)
 '''
 For uploading multiple images
 '''
-UPLOAD_FOLDER = 'C:/Users/HU-Student/Documents/GitHub/Dastaan/UI+database/UI/static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_FOLDER')
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 
