@@ -26,3 +26,16 @@
 #             }
 #             window.onload = addRowHandlers();
 #             </script> -->
+
+#  def getLocation(address):
+#     geolocator = Nominatim(user_agent="Your_Name")
+#     location = geolocator.geocode(address)
+#     if location is not None:
+#         conn, cur = get_db_connection()
+#         cur.execute("INSERT INTO locations (longitude, latitude, location_data) VALUES (%s, %s, ST_SetSRID(ST_GeomFromText('POINT(' || %s || ' ' || %s || ')'), 4326)) RETURNING id", (location.longitude, location.latitude, location.longitude, location.latitude))
+#         location_id = cur.fetchone()[0]
+#         cur.close()
+#         conn.commit()
+#         return location_id
+#     else:
+#         return None
