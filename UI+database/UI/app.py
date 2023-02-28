@@ -47,7 +47,7 @@ def get_db_connection():
 
 app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = 'DastaanGo'
-openai.api_key = "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"
+openai.api_key = "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"
 username = ''
 
 # Flask-Mail configuration
