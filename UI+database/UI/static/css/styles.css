@@ -4500,7 +4500,7 @@ textarea.form-control-lg {
   }
 }
 .navbar-expand {
-  flex-wrap: nowrap;
+  flex-wrap: nowrap; /*chaning to nowrap didn't work*/
   justify-content: flex-start;
 }
 .navbar-expand .navbar-nav {
@@ -4530,11 +4530,12 @@ textarea.form-control-lg {
   position: inherit;
   bottom: 0;
   z-index: 1000;
-  flex-grow: 1;
+  flex-grow: 5; /* not this used to be 1*/
   visibility: visible !important;
   background-color: transparent;
   border-right: 0;
   border-left: 0;
+  /*border-top: 0;*/
   transition: none;
   transform: none;
 }
