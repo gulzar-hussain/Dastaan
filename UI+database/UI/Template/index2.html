@@ -20,7 +20,7 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
             <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="{{url_for('dashboard')}}">Welcome</a>
+                <a class="navbar-brand" href="{{url_for('logout')}}">Logout {{username}}</a>
                 <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars"></i>
@@ -29,7 +29,8 @@
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">login/signup</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('searchlocations')}}">Search Stories</a></li>
                     </ul>
                 </div>
             </div>
@@ -39,7 +40,7 @@
             <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
                 <div class="d-flex justify-content-center">
                     <div class="text-center">
-                        <h1 class="mx-auto my-0 text-uppercase">Dastaan</h1>
+                        <h1 class="mx-auto my-0 text-uppercase">Dastan</h1>
                         <h2 class="text-white-50 mx-auto mt-2 mb-5">Digital Museum for Karachi</h2>
                         <a class="btn btn-primary" href="#about">Get Started</a>
                     </div>

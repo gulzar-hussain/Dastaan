@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Search Locations</title>
+        <title>Add Stories</title>
         
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
@@ -29,8 +29,7 @@
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">login/signup</a></li>
-                        <!-- <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li> -->
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('searchlocations')}}">Search Stories</a></li>
                     </ul>
                 </div>
             </div>
@@ -50,7 +49,7 @@
                 <div class="row gx-4 gx-lg-5">
                     <div class="col-md-10 col-lg-8 mx-auto text-center">
                         <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
-                        <h2 class="text-white mb-5">Search for places you want to know!</h2>
+                        <h2 class="text-white mb-5">Tell us your story!</h2>
                         <!-- * * * * * * * * * * * * * * *-->
                         <!-- * * SB Forms Contact Form * *-->
                         <!-- * * * * * * * * * * * * * * *-->
@@ -58,67 +57,32 @@
                         <!-- To make this form functional, sign up at-->
                         <!-- https://startbootstrap.com/solution/contact-forms-->
                         <!-- to get an API token!-->
-                        <!-- <form  name = "searchlocations" action="/searchlocations" method = "POST">
-                            <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
-                            <div ><button  id="submitButton" type="submit" value=" submit">Search</button></div>
-                        </form> -->
-                        <form class="form-signup" name = "searchlocations" action="/searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
+                        
+                        <form class="form-signup" name = "addingStory" action="/addingStory" method = "POST" data-sb-form-api-token="API_TOKEN" enctype="multipart/form-data">
                             <!-- Email address input-->
                             <div class="row input-group-newsletter">
-                                <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" value = "{{searchtext}}" placeholder="Enter location..." value="" aria-label="Enter location..." /></div>
-                                <div class="col-auto"><button class="btn btn-primary" id="submitButton" type="submit">Search</button></div>
+                                <div class="row"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." /></div>
+                                <label>.</label>
+                                <div class="row"><input class="form-control" name = "timeline" id="timeline" type="text" placeholder="Timeline of your story..." value="" aria-label="Timeline of your story..." /></div>
+                                <label>.</label>
+                                <div class="row"><input class="form-control" name = "story" id="story" type="text" placeholder="Start writing your story..." value="" aria-label="Start writing your story..." /></div>
+                                <label>.</label>
+                                <div class="row"><input class="form-control" name = "tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag" /></div>
+                                
+                                <div class="row">
+                                    <label>Choose Images: </label>
+                                    <input type="file" name="files[]" id="fileInput" class="form-control" multiple >
+                                </div>
+                                <label>.</label>
+                                <div class="row-auto"><button class="btn btn-primary" id="submitButton" type="submit">Upload</button></div>
                                 
                             </div>
                         
                             
                         </form>
                     </div>
-
-                
-                    <!-- Include jQuery library -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Define the click event handler -->
-
-
-<!-- Create the table -->
-<table class="styled-table" id="tableId">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <ul class="alert">
-                            {% for category, message in messages %}
-                                {% if category == 'error' %}
-                                    <li class="alert-danger">{{ message }}</li>
-                                {% elif category == 'success' %}
-                                    <li class="alert-success">{{ message }}</li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% endwith %}
-    <tbody>
-        {% for story in data %}
-        <tr >
-            <td>{{ story.tag.title() }}</td>
-            <td>{{ story.description[:50] }}</td>
-            <td><a href="{{ url_for('getlocations', story_id= story.id) }}">View</a></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-                    
-  
-                    <div class="container">
-                        {% for story in data %}
-                        <!-- (nine numbered divs) -->
-                        <div class="square">
-                            
-                            <p>{{story[0]}}</p>
-                            <p>{{story[1]}}</p>
-                        </div>
-                        {% endfor %}
-                    </div>
+            
+                      
                 
                 </div>
             </div>
@@ -135,19 +99,26 @@
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
-       
         <script>
-            // Get all the alert elements
-            var alerts = document.querySelectorAll('.alert');
-          
-            // Loop through each alert element
-            alerts.forEach(function(alert) {
-              // Set a timeout to remove the alert after 3 seconds
-              setTimeout(function() {
-                alert.remove();
-              }, 3000);
+            $(document).ready(function(){
+             // File type validation
+                $("#fileInput").change(function(){
+                    var fileLength = this.files.length;
+                    var match= ["image/jpeg","image/png","image/jpg","image/gif"];
+                    var i;
+                    for(i = 0; i < fileLength; i++){ 
+                        var file = this.files[i];
+                        var imagefile = file.type;
+                        if(!((imagefile==match[0]) || (imagefile==match[1]) || (imagefile==match[2]) || (imagefile==match[3]))){
+                            alert('Please select a valid image file (JPEG/JPG/PNG/GIF).');
+                            $("#fileInput").val('');
+                            return false;
+                        }
+                    }
+                });
             });
-          </script>
+            </script>
+        
           
     </body>
 </html>
