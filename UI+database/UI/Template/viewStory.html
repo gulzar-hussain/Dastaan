@@ -1,128 +1,121 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head><meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-  <title>Personal Story</title>
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
-</head>
-<div>
-  <div>
-    <div class="topnav">
-      <a  href="/">Home</a>
-      
-      <!-- <a  href="/location">location</a> -->
-      <a href="/addstory">Add Personal Story</a>
-      <a href="/viewstory">View Personal Story</a>
-      <a href="/location">Search Location</a>
-
-    </div>
-  
-  <!-- Side navigation -->
-  <div class="sidenav">
-    <img src = "{{ url_for('static', filename='images/avatar.png') }}" alt = "avatar">
-    <div id="chatbox">
-      <p class="botText">
-        <span>Hi! I'm Candice your personal ChatBot</span>
-      </p>
-    </div>
-    <div id="userInput">
-      <input id="textInput" type="text" name="msg" placeholder="Message" />
-    </div>
-  </div>
-    
-    
-  </div>
-  
-  <script>
-    function getBotResponse() {
-      var rawText = $("#textInput").val();
-      var userHtml = '<p class="userText"><span>' + rawText + "</span></p>";
-      $("#textInput").val("");
-      $("#chatbox").append(userHtml);
-      document
-        .getElementById("userInput")
-        .scrollIntoView({ block: "start", behavior: "smooth" });
-      $.get("/get", { msg: rawText }).done(function(data) {
-        var botHtml = '<p class="botText"><span>' + data + "</span></p>";
-        $("#chatbox").append(botHtml);
-        document
-          .getElementById("userInput")
-          .scrollIntoView({ block: "start", behavior: "smooth" });
-      });
-    }
-    $("#textInput").keypress(function(e) {
-      if (e.which == 13) {
-        getBotResponse();
-      }
-    });
-  </script>
-
-
-<div class="main">
-  <div class="container">
-    <form name = "getstory" action="getstory" method = "POST">
-  
-      <label for="year">Select year:</label>
-      <input list="year" name="year">
-      <datalist id="year">
-        {% for year in years %}
-          <option value="{{ year }}">
-        {% endfor %}
-      </datalist>
-        <br>
-        <label for="tags">Tags</label>
-        <select id="tags" name="tags">
-          <option value=""></option>
-          <option value="political">Political</option>
-          <option value="social">Social</option>
-          <option value="music">Music</option>
-          <option value="cultural">cultural</option>
-          <option value="history">history</option>
-        </select>
-      <br>
-      <label for="location">Location</label>
-
-      <select id="location" name="location">  
-        <option value=""></option>      
-        <option value="Saddar">Saddar</option>
-        <option value="Frere Hall">Frere Hall</option>
-        <option value="Empress Market">Empress Market</option> 
-        <option value="Mazar-e-Quaid">Mazar-e-Quaid</option>
-        <option value="Teen Talwar">Teen Talwar</option>
-        <option value="Clifton">Clifton</option> 
-        <option value="National Museum Of Pakistan">National Museum Of Pakistan</option> 
-        <option value="Saeed Manzil">Saeed Manzil</option> 
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>View Story</title>
         
-      </select>
-      
-      
-      <input type="submit" value="submit">
-    </form>
-    <form action="getstory">
-        <label for="story">Story</label>
-        <br>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+        <style>.description {
+            font-size: 18px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            text-align: center;
+            color: white;
+          }</style>
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="{{url_for('dashboard')}}">Dastaan</a>
+                <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('searchlocations')}}">Search Story</a></li>
+                        {% if session.get('user_id') %}
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}">Logout</a></li>
+                        {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">login/signup</a></li>
+                        {% endif %}
+                        <button onclick="window.history.back();" class="btn btn-primary">Go Back</button>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Masthead-->
+        
+        
+        <!-- About-->
+        
+        <!-- Projects-->
+        
+                <!-- Project Two Row-->
+               
+        <!-- Signup-->
+        <section class="signup-section" id="signup">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5">
+                    <div class="col-md-10 col-lg-8 mx-auto text-center">
+                        <!-- <i class="far fa-paper-plane fa-2x mb-2 text-white"></i> -->
+                        
+                        <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
+                            {% for image in images %}
+                            <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=image['file_name']) }}" alt="Image" /></div>
+                            {% endfor %}
+                            <div class="col-xl-4 col-lg-5">
+                                <div class="featured-text text-center text-lg-left">
+                                    <h4>{{Location_name}}</h4>
+                                    <p class="text-black-50 mb-0">Category  - {{story['tag'].title()}} </p>
+                                    <p class="text-black-50 mb-0">Timeline  -  {{story['year']}} </p>
+                                    
+                                   
+                                    
+        
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container">
+                            
+                            <div class="description">
+                              {{ story['description'] }}
+                            </div>
+                            
+                          </div>
+                        
+                    </div>
 
-        {% for item in data %}
-        <textarea id="mystory" name="description"  style="height:200px">{{item}}</textarea>
-        {% endfor %}
+                
+                    <!-- Include jQuery library -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-        {% for img in image %}
-        <img src="{{ url_for('static', filename='uploads/' + img) }}">
-        {% endfor %}
-    </form>
-  </div>
+<!-- Define the click event handler -->
 
-  
-
-  <!-- <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3620.478110646292!2d67.03085311440064!3d24.84751518406003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33dd84b5b4d7b%3A0x37de022366f8096f!2sFrere%20Hall!5e0!3m2!1sen!2s!4v1668078843170!5m2!1sen!2s" width="3600" height="1450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
-
-</div> 
-  
-
-</body>
+ 
+                      
+                
+                </div>
+            </div>
+        </section>
+       
+        <!-- Footer-->
+        
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+       
+        
+          
+    </body>
 </html>

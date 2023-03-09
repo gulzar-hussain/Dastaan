@@ -20,7 +20,7 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
             <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="{{url_for('logout')}}">Logout {{username}}</a>
+                <a class="navbar-brand" href="#">Welcome</a>
                 <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars"></i>
@@ -30,7 +30,7 @@
                         <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('searchlocations')}}">Search Stories</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}">Logout {{username}}</a></li>
                     </ul>
                 </div>
             </div>
@@ -123,7 +123,7 @@
                     <form class="form-inline" name = "searchlocations" action="/" method = "POST" data-sb-form-api-token="API_TOKEN">
                         <!-- Email address input-->
                         <div class="row input-group-newsletter">
-                            <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
+                            <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." autocomplete="off" /></div>
                             <div class="col-auto"><button class="btn btn-primary " id="submitButton" type="submit">Search</button></div>
                         </div>
                     
@@ -189,6 +189,32 @@
         <!-- * *                               SB Forms JS                               * *-->
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+
+        <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+        <script>
+            $(function() {
+                $("#location_name").autocomplete({
+                    source: function(request, response) {
+                    $.ajax({
+                        url: "/autocomplete",
+                        data: { term: request.term },
+                        success: function(data) {
+                        response(data);
+                        }
+                    });
+                    },
+                    select: function(event, ui) {
+                        event.preventDefault();
+                        $("#location_name").val(ui.item.label);
+                    }
+                });
+            });
+
+        </script>
     </body>
 </html>

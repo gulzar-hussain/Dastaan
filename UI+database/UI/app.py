@@ -1,8 +1,10 @@
+import re
+import requests
 import dashboard
 import location
 import personalstory
 import openai
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, abort, jsonify, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
 import psycopg2.extras
@@ -11,39 +13,22 @@ from psycopg2 import connect, sql
 from werkzeug.utils import secure_filename, send_from_directory
 import os
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
-from flask_mail import Mail, Message
-#import magic
-import urllib.request
-from datetime import datetime
+from flask_mail import Mail
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
-
-# from chatterbot import ChatBot
-# from chatterbot.trainers import ChatterBotCorpusTrainer
-# from chatterbot.trainers import ListTrainer
-
-# bot = ChatBot("DaastanGo")
-# trainer=ListTrainer(bot)
-# trainer.train(['What is your name?', 'DaastanGo'])
-# trainer.train(['Can you tell me about Empress Market', 'Sure. what would you like to know about it' ])
-# trainer.train(['its history', 'Empress Market'])
-# trainer.train(['a personal story', 'Sorry, but currently we dont have any.'])
-# trainer=ChatterBotCorpusTrainer(bot)
-# trainer.train("chatterbot.corpus.english")
-#!/usr/bin/python
-
 
 def get_db_connection():
 
     conn = None
     conn = psycopg2.connect(
-        database='aztabiei',
-        user='aztabiei',
-        password='4aVvI5GHQ70Mqbeo9wyKx-YUTrZ9tmUb',
-        host='satao.db.elephantsql.com',
-        port='5432'
-    )
+          database='mydastaan',
+          user='postgres',
+          password='google',
+          host='localhost',
+          port='5432'
+      )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     return conn, cur
 
@@ -51,6 +36,7 @@ def get_db_connection():
 app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = os.environ.get('APP_SECRET_KEY')
 openai.api_key = os.environ.get('OPENAI_API_KEY')
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -71,7 +57,6 @@ ts = URLSafeTimedSerializer(app.secret_key)
 '''
 For uploading multiple images
 '''
-
 app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_FOLDER')
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
@@ -79,31 +64,63 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-def getLocation(address):
-    geolocator = Nominatim(user_agent="Your_Name")
+def get_location_id(address):
+    geolocator = Nominatim(user_agent="dastaan")
     location = geolocator.geocode(address)
-    return location
+    if location is not None:
+        conn, cur = get_db_connection()
+        cur.execute("SELECT id from locations WHERE longitude ::numeric = %s AND latitude ::numeric = %s",(location.longitude,location.latitude))
+        location_id = cur.fetchone()[0]
+        cur.close()
+        conn.commit()
+        conn.close()
+        return location_id
+    else:
+        return None
+    
 
-
-flagforlocation = False
-
-# class Location:
-#     def __init__(self, key, name, lat, lng):
-#         self.key = key
-#         self.name = name
-#         self.lat = lat
-#         self.lng = lng
-
-
-# locations = (
-#     # TODO: dynamically pick loaction objects from here
-#     Location('frere',      'Frere Hall',   37.9045286, -122.1445772),
-#     Location('empress', 'Empress Market',            37.8884474, -122.1155922),
-#     Location('museum',     'National Museum', 37.9093673, -122.0580063)
-# )
-# location_by_key = {location.key: location for location in locations}
-
+def get_location_coordinates(address):
+    geolocator = Nominatim(user_agent="dastaan")
+    location = geolocator.geocode(address)
+    print(location)
+    if location is not None:
+        conn, cur = get_db_connection()
+        cur.execute("INSERT INTO locations (longitude, latitude,location, location_data) VALUES (%s, %s,%s, ST_SetSRID(ST_GeomFromText('POINT(' || %s || ' ' || %s || ')'), 4326)) ON CONFLICT DO NOTHING RETURNING id", (location.longitude, location.latitude,address, location.longitude, location.latitude))
+        address =address.lower()
+        cur.execute("SELECT id from locations WHERE longitude ::numeric = %s AND latitude ::numeric = %s",(location.longitude,location.latitude))
+        location_id = cur.fetchone()[0]
+        cur.close()
+        conn.commit()
+        conn.close()
+        return location_id
+    else:
+        return None
+    
+def get_nearby_stories(location):
+  geolocator = Nominatim(user_agent="dastaan")
+  location = geolocator.geocode(location)       
+  if location is not None:
+    conn, cur = get_db_connection()
+    long = location.longitude
+    lat = location.latitude
+    query= '''
+    SELECT * FROM stories WHERE location_id IN (
+    SELECT id
+    FROM locations WHERE ST_DWithin(
+      location_data, 
+      ST_SetSRID(ST_MakePoint(%s, %s), 4326), 
+      10000
+      )) AND location_id != (
+    SELECT id
+    FROM locations WHERE location_data = ST_SetSRID(ST_MakePoint(%s, %s), 4326)
+    ) ORDER BY year DESC;'''
+    values = (long,lat,long,lat)
+    cur.execute(query,values)
+    nearby_stories = cur.fetchall()
+    cur.close()
+    conn.close()
+    return nearby_stories
+ 
 @app.route("/", methods=['GET', 'POST'])
 def dashboard():
     if request.method == 'POST':
@@ -117,21 +134,40 @@ def dashboard():
             cur.execute(query, values)
             stories = cur.fetchall()
             print(stories)
+            nearbyStories = get_nearby_stories(location)
             conn.close()
-            return render_template('searchlocations.html', data=stories, searchtext=location)
+            return render_template('searchlocations.html', data=stories,nearbyStories = nearbyStories, searchtext=location)
         except Exception as error:
             print(error)
         return render_template('searchlocations.html')
-    if 'user_id' in session:
-        return render_template('index2.html', username=session['username'])
-
+   
     return render_template('index.html')
 
-
+@app.route("/autocomplete")
+def autocomplete():
+    term = request.args.get('term')
+    conn, cur = get_db_connection()
+    query = """
+        SELECT location, SIMILARITY(location, %s) AS score 
+        FROM locations 
+        WHERE location ILIKE %s 
+        ORDER BY score DESC
+        LIMIT 10
+    """
+    values = (term, f"%{term}%")
+    cur.execute(query, values)
+    results = [{'label': row[0]} for row in cur.fetchall()]
+    conn.close()
+    return jsonify(results)
+ 
 @app.route('/image/<filename>')
 def get_image(filename):
-    print(filename)
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, environ=request.environ)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.isfile(filepath):
+        print('file is here')
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, environ=request.environ)
+    else:
+        abort(404)
 
 
 @app.route('/location/<int:story_id>')
@@ -152,12 +188,12 @@ def getlocations(story_id):
         cur.close()
         conn.close()
 
-        return render_template('viewstory1.html', story=story, images=images, Location_name=location)
+        return render_template('viewstory.html', story=story, images=images, Location_name=location)
 
     except Exception as error:
         print(error)
 
-    return render_template('viewstory1.html')
+    return render_template('viewstory.html')
 
 
 @app.route("/searchlocations", methods=['POST', 'GET'])
@@ -168,15 +204,16 @@ def searchlocations():
         print(location)
         try:
             conn, cur = get_db_connection()
-            query = 'SELECT * FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
-            values = (location,)
+            query = 'SELECT * FROM stories WHERE location_id = %s'
+            values = (get_location_id(location),)
             cur.execute(query, values)
             stories = cur.fetchall()
             if len(stories) == 0:
                 flash('No stories found', 'error')
-            print(stories)
+            # print(stories)
+            nearbyStories = get_nearby_stories(location)
             conn.close()
-            return render_template('searchlocations.html', data=stories)
+            return render_template('searchlocations.html', data=stories, nearbyStories = nearbyStories)
         except Exception as error:
             print(error)
     return render_template('searchlocations.html')
@@ -194,52 +231,53 @@ def addingStory():
     try:
         user_id = session['user_id']
     except:
-        Message = 'You must be loged in to add a story'
+        flash('You must be logged in to upload a story', 'error')
+        return redirect(url_for('login'))
 
     if request.method == 'POST':
         year = request.form['timeline']
         tag = request.form['tag']
         location = request.form['location_name']
         description = request.form['story']
-
-        location_details = getLocation(location)
-        lat = location_details.latitude
-        longt = location_details.longitude
-        location = location.lower()
+        contributor = request.form['contributor']
+        
         try:
-            cur.execute(
-                "INSERT INTO locations (longitude, latitude, location) VALUES (%s,%s,%s) ON CONFLICT DO NOTHING", (longt, lat, location))
+            location_id = get_location_coordinates(location)
+            if location_id:
+                print("Location added successfully!")
+            location = location.lower()
+            add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor) VALUES 
+            (%s,%s ,%s, %s,%s,%s) RETURNING id'''
+            values = (tag, description, user_id, location_id, year,contributor)
+            cur.execute(add_story, values)
+            '''get id of the story that is just inserted to stories table above'''
+            story_id = cur.fetchone()[0]
             conn.commit()
-            print("Location added successfully!")
+            
         except psycopg2.Error as e:
             conn.rollback()
+            flash('Story upload failed! :(','error')
             print("Error: ", e)
-        add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year) VALUES 
-        (%s,%s ,%s,(SELECT id FROM locations WHERE LOWER(location) = %s),%s) RETURNING id'''
-        values = (tag, description, user_id, location, year)
-        cur.execute(add_story, values)
-        '''get id of the story that is just inserted to stories table above'''
-        story_id = cur.fetchone()[0]
-        conn.commit()
-
         # image upload
 
         files = request.files.getlist('files[]')
-        print(files)
+        # print(files)
+        if files:
+            try:
+                for file in files:
 
-        for file in files:
-
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                print('filename:', filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                print('filepath:', filepath)
-                file.save(filepath)
-                cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, %s,%s)", [
-                            filename, now, story_id])
-                conn.commit()
-        flash('File(s) successfully uploaded')
-
+                    if file and allowed_file(file.filename):
+                        filename = secure_filename(file.filename)
+                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                        file.save(filepath)
+                        cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, %s,%s)", [
+                                    filename, now, story_id])
+                        conn.commit()
+                        flash('Story uploaded successfully! :)','success')
+            except psycopg2.Error as e:
+                conn.rollback()
+                flash('Story upload failed! :(','error')
+                print("Error: ", e)
         cur.close()
         conn.close()
 
@@ -315,24 +353,32 @@ def login():
         user = cur.fetchone()
 
         if user:
-            # Verify password hash
-            if check_password_hash(user[4], password):
-                # Set session variables
-                session['user_id'] = user[0]
-                session['is_moderator'] = user[6]
-                session['is_verified'] = user[7]
-                session['username'] = user[1]
-                flash('Login successful.', 'success')
-                conn.close()
+            # Verify whether user is verified
+            if user[6]:
+                
+                # Verify password hash
+                if check_password_hash(user[4], password):
+                    # Set session variables
+                    session['user_id'] = user[0]
+                    session['is_moderator'] = user[6]
+                    session['is_verified'] = user[7]
+                    session['username'] = user[1]
+                    flash('Login successful.', 'success')
+                    conn.close()
 
-                return render_template("index2.html", username=session['username'])
+                    return render_template("index.html")
+            
+                else:
+                    flash('Invalid email or password.', 'error')
+                    return redirect(url_for('login'))
             else:
-
-                flash('Invalid email or password.', 'error')
+                flash("Please verify your email first",'error')
+                return redirect(url_for('login'))
         else:
             flash('Invalid email or password.', 'error')
-
-    return render_template('login.html')
+            return redirect(url_for('login'))
+    else:
+        return render_template('login.html')
 
 
 @app.route("/verify/<token>")
@@ -367,48 +413,21 @@ def logout():
     return redirect(url_for("dashboard"))
 
 
-@app.route('/getstory', methods=['POST', 'GET'])
-def getStory():
-    if request.method == 'POST':
-        year = request.form['year']
-        tag = request.form['tags']
-        location = request.form['location']
 
-        conn, cur = get_db_connection()
-        cur.execute(
-            "SELECT file_name FROM images WHERE file_name = 'Saeed_Manzil.jpg'")
-        image = [row[0] for row in cur.fetchall()]
-        print(image)
-        query = '''
-        SELECT description FROM stories WHERE (year = %s AND tag = %s AND location_id = (SELECT id FROM locations WHERE location =  %s))
-        '''
-        values = (year, tag, location)
-        cur.execute("SELECT DISTINCT year FROM stories ORDER BY year DESC")
-        years = [row[0] for row in cur.fetchall()]
-        print(years)
-        try:
-            cur.execute(query, values)
-            data = [row[0] for row in cur.fetchall()]
-            if len(data) == 0:
-                data = [['No story found :(']]
-            print(data)
-            conn.commit()
-
-            cur.close()
-            conn.close()
-            return render_template("viewStory.html", data=data, years=years, image=image)
-        except:
-            conn.rollback()
-            print("failed.")
-            cur.close()
-            conn.close()
-            return render_template("viewStory.html", years=years)
 
 # @app.route("/get")
 # def get_bot_response():
 #     userText = request.args.get('msg')
 #     return str(bot.get_response(userText))
 
+
+def get_stories(location):
+    # run a query to select stories based on the user's location
+    conn, cur = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT description FROM stories WHERE location = %s", (location,))
+    stories = cur.fetchall()
+    return stories
 
 # Open ai chatbot
 @app.route("/guide", methods=("GET", "POST"))
@@ -420,11 +439,14 @@ def guide():
             prompt=generate_prompt(animal),
             temperature=0.6,
         )
+        
         return redirect(url_for("guide", result=response.choices[0].text))
 
     result = request.args.get("result")
+    
     return render_template("guide.html", result=result)
-
+      
+    
 
 def generate_prompt(animal):
     return """Where is this place?

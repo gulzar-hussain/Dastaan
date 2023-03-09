@@ -17,7 +17,19 @@
 <body>
 	
 	<div class="main">  	
-		
+		{% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="alert">
+                            {% for category, message in messages %}
+                                {% if category == 'error' %}
+                                    <li class="alert-error">{{ message }}</li>
+                                {% elif category == 'success' %}
+                                    <li class="alert-success">{{ message }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
 		<input type="checkbox" id="chk" aria-hidden="true">
 
 			<div class="signup">
@@ -44,19 +56,7 @@
 					<a href="/dashboard">
 						<button>Login</button>
 					</a>
-					{% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <ul class="alert">
-                            {% for category, message in messages %}
-                                {% if category == 'error' %}
-                                    <li class="alert-error">{{ message }}</li>
-                                {% elif category == 'success' %}
-                                    <li class="alert-success">{{ message }}</li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% endwith %}
+					
 				</form>
 			</div>
 	</div>
@@ -70,7 +70,7 @@
 		  // Set a timeout to remove the alert after 3 seconds
 		  setTimeout(function() {
 			alert.remove();
-		  }, 3000);
+		  }, 5000);
 		});
 	  </script>
 	  

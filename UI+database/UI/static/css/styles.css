@@ -5018,6 +5018,11 @@ textarea.form-control-lg {
   top: -1px;
 }
 
+/* Flash message styles */
+
+
+
+
 .alert {
   position: relative;
   padding: 1rem 1rem;
@@ -11749,3 +11754,4 @@ body {
   cursor: pointer;
   background-color: #f5f5f5;
 }
+
