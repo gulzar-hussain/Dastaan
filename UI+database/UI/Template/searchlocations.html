@@ -123,7 +123,17 @@
 </table>
 
                     
-                      
+  
+                    <div class="container">
+                        {% for story in data %}
+                        <!-- (nine numbered divs) -->
+                        <div class="square">
+                            
+                            <p>{{story[0]}}</p>
+                            <p>{{story[1]}}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
                 
                 </div>
             </div>
