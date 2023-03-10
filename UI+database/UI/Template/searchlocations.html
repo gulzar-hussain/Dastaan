@@ -68,7 +68,7 @@
                         </form> -->
                         <form class="form-signup" name = "searchlocations" action="/searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
                             <!-- Email address input-->
-                            <div class="row input-group-newsletter">
+                            <div class="row input-group-newsletter" style="margin-bottom: 30px;">
                                 <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" value = "{{searchtext}}" placeholder="Enter location..." value="" aria-label="Enter location..." autocomplete="off" /></div>
                                 <div class="col-auto"><button class="btn btn-primary" id="submitButton" type="submit">Search</button></div>
                                 
@@ -86,7 +86,7 @@
 
 
 <!-- Create the table -->
-<table class="styled-table" id="tableId">
+<!-- <table class="styled-table" id="tableId"> -->
     <!-- {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <ul class="alert">
@@ -98,7 +98,7 @@
                         </ul>
                     {% endif %}
                 {% endwith %} -->
-    <tbody>
+    <!-- <tbody>
         {% for story in data %}
         <tr >
             <td>{{ story.tag.title() }}</td>
@@ -109,22 +109,36 @@
         </tr>
         {% endfor %}
     </tbody>
-</table>
+</table> -->
+<div class="3box">
+    {% for story in data %}
+    <!-- (nine numbered divs) -->
+    <div class="box">
+        
+        <p>{{story.tag}}</p>
+        <p>{{story.description[:50]}}</p>
+        <p><form  action="{{ url_for('getlocations', story_id=story.id, flag=0) }}">
+            <button type="submit" class="btn btn-success">View</button>
+        </form></p>
+    </div>
+    {% endfor %}
+</div>
 
-<h2 class="text-white mb-5">Stories Near Your Selected Location</h2>
-<table class="styled-table">
-    <tbody>
-        {% for story in nearbyStories %}
-        <tr >
-            <td>{{ story.tag.title() }}</td>
-            <td>{{ story.description[:50] }}</td>
-            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=0) }}">
-                <button type="submit" class="btn btn-success">View</button>
-            </form></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+<h2 class="text-white mb-5" style="margin-top: 30px;">Stories Near Your Selected Location</h2>
+<div class="3box">
+    {% for story in nearbyStories %}
+    <!-- (nine numbered divs) -->
+    <div class="box">
+        
+        <p>{{story.tag}}</p>
+        <p>{{story.description[:50]}}</p>
+        <p><form  action="{{ url_for('getlocations', story_id=story.id, flag=0) }}">
+            <button type="submit" class="btn btn-success">View</button>
+        </form></p>
+    </div>
+    {% endfor %}
+</div>
 
                     
                       

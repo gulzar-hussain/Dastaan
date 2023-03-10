@@ -11756,3 +11756,13 @@ body {
   background-color: #f5f5f5;
 }
 
+.box {
+  width: 200px;
+  height: 200px;
+  background: #cce;
+  display: inline-block;
+  margin-left: 10px;
+  margin-top: 10px;
+  vertical-align: top;
+  text-align: center;
+}

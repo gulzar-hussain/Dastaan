@@ -26,7 +26,7 @@ def get_db_connection():
           database='mydastaan',
           user='postgres',
           password='google',
-          host='192.168.137.1',
+          host='localhost',
           port='5432'
       )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
