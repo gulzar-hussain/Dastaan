@@ -1,7 +1,8 @@
+from flask import redirect
 import dashboard
 import location
 import personalstory
-# import openai
+import openai
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
@@ -184,7 +185,9 @@ def searchlocations():
 
 @app.route('/map')
 def map():
-    return render_template("map.html")
+    # return render_template("map.html")
+    return redirect("http://127.0.0.1:8080",code=302)
+
 
 
 @app.route('/addingStory', methods=['POST', 'GET'])

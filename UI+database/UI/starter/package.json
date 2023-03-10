@@ -1,0 +1,39 @@
+{
+  "name": "maps-webgl-codelab-solution-project",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "webpack serve --progress --hot --open",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server/index.js",
+    "clean:dev": "rimraf build",
+    "clean:prod": "rimraf dist"
+  },
+  "author": "Alex Muramoto",
+  "license": "Apache 2.0",
+  "dependencies": {
+    "@googlemaps/js-api-loader": "^1.13.9",
+    "assert": "^2.0.0",
+    "babel-loader": "^9.1.2",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
+    "events": "^3.3.0",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
+    "https-browserify": "^1.0.0",
+    "nodemon": "^2.0.21",
+    "path-browserify": "^1.0.1",
+    "querystring-es3": "^0.2.1",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "three": "^0.138.3",
+    "url": "^0.11.0",
+    "webpack-shell-plugin-next": "^2.3.1"
+  },
+  "devDependencies": {
+    "webpack": "^5.70.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.7.4"
+  }
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- <script src="https://www.google.com/maps/embed/v1/MAP_MODE?key=AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA"></script> -->
+    <!-- AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA  -->
+    <!-- <script src="https://maps.googleapis.com/maps/api/js"></script> -->
+    <script src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+  </head>
+  <body>
+    <!-- {% assets "main_js" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %} -->
+    <script type="text/javascript">
+      // import * as THREE from "three";
+      import { Loader } from "../static/node_modules/@googlemaps/js-api-loader/dist/index.min.js";
+
+      // const scene = new THREE.Scene();
+      const apiOptions = {
+        apiKey: "AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA",
+      };
+
+      const mapOptions = {
+        tilt: 0,
+        heading: 0,
+        zoom: 18,
+        center: { lat: 35.6594945, lng: 139.6999859 },
+        mapId: "2f95a159e490bcec",
+      };
+      async function initMap() {
+        const mapDiv = document.getElementById("map");
+        // const apiLoader = new Loader(apiOptions);
+        // await apiLoader.load();
+        return new google.maps.Map(mapDiv, mapOptions);
+      }
+
+      function initWebGLOverlayView(map) {
+        let scene, renderer, camera, loader;
+        // WebGLOverlayView code goes here
+      }
+
+      (async () => {
+        const map = await initMap();
+      })();
+    </script>
+  </body>
+</html>
