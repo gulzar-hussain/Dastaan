@@ -26,7 +26,7 @@ def get_db_connection():
           database='mydastaan',
           user='postgres',
           password='google',
-          host='localhost',
+          host='192.168.137.1',
           port='5432'
       )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -36,7 +36,7 @@ def get_db_connection():
 app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = os.environ.get('APP_SECRET_KEY')
 openai.api_key = os.environ.get('OPENAI_API_KEY')
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
+# app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -104,7 +104,7 @@ def get_nearby_stories(location):
     long = location.longitude
     lat = location.latitude
     query= '''
-    SELECT * FROM stories WHERE location_id IN (
+    SELECT * FROM stories WHERE is_verified = true AND location_id IN (
     SELECT id
     FROM locations WHERE ST_DWithin(
       location_data, 
@@ -117,6 +117,7 @@ def get_nearby_stories(location):
     values = (long,lat,long,lat)
     cur.execute(query,values)
     nearby_stories = cur.fetchall()
+    
     cur.close()
     conn.close()
     return nearby_stories
@@ -129,7 +130,7 @@ def dashboard():
         print(location)
         try:
             conn, cur = get_db_connection()
-            query = 'SELECT * FROM stories WHERE location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
+            query = 'SELECT * FROM stories WHERE is_verified = true AND location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
             values = (location,)
             cur.execute(query, values)
             stories = cur.fetchall()
@@ -170,8 +171,8 @@ def get_image(filename):
         abort(404)
 
 
-@app.route('/location/<int:story_id>')
-def getlocations(story_id):
+@app.route('/location/<int:story_id>/<int:flag>')
+def getlocations(story_id,flag):
     # Get the story from the database based on the story_id
     # Render the HTML page with the story data
     try:
@@ -187,13 +188,33 @@ def getlocations(story_id):
         print(location)
         cur.close()
         conn.close()
-
-        return render_template('viewstory.html', story=story, images=images, Location_name=location)
+        
+        
+        return render_template('viewstory.html', story=story, images=images, Location_name=location, is_from_approve =flag )
 
     except Exception as error:
         print(error)
 
     return render_template('viewstory.html')
+
+@app.route('/approved/<int:story_id>')
+# @login_required(role='moderator')
+def approved(story_id):
+    # Get the story from the database based on the story_id
+    # Render the HTML page with the story data
+    try:
+        conn, cur = get_db_connection()
+        cur.execute("UPDATE stories SET is_verified = TRUE WHERE id = %s", (story_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return render_template('approveStory.html')
+
+    except Exception as error:
+        print(error)
+
+    return render_template('approveStory.html')
 
 
 @app.route("/searchlocations", methods=['POST', 'GET'])
@@ -204,7 +225,7 @@ def searchlocations():
         print(location)
         try:
             conn, cur = get_db_connection()
-            query = 'SELECT * FROM stories WHERE location_id = %s'
+            query = 'SELECT * FROM stories WHERE is_verified = true AND location_id = %s'
             values = (get_location_id(location),)
             cur.execute(query, values)
             stories = cur.fetchall()
@@ -354,7 +375,7 @@ def login():
 
         if user:
             # Verify whether user is verified
-            if user[6]:
+            if user[7]:
                 
                 # Verify password hash
                 if check_password_hash(user[4], password):
@@ -421,14 +442,35 @@ def logout():
 #     return str(bot.get_response(userText))
 
 
-def get_stories(location):
+def get_unapprovedStories(location):
     # run a query to select stories based on the user's location
     conn, cur = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT description FROM stories WHERE location = %s", (location,))
+    cur.execute("SELECT * FROM stories WHERE is_verified = false AND location_id = (SELECT id from locations where location = %s) ", (location,))
     stories = cur.fetchall()
-    return stories
+    cur.execute("SELECT * FROM stories WHERE is_verified = false")
+    all_stories = cur.fetchall()
+    cur.close()
+    conn.close()
+    return stories, all_stories
 
+@app.route("/approveStory", methods=("GET", "POST"))
+# @login_required(role='moderator')
+def approveStory():
+    if session['is_moderator']:
+        flag = 1
+        unapprovedStories, all_stories = get_unapprovedStories("")
+        return render_template("approveStory.html",data =unapprovedStories, unapprovedStories = all_stories, flag = flag)
+    abort(400)
+@app.route("/unapprovedStories", methods=("GET", "POST"))
+def unapprovedStories():
+    flag = 1
+    if request.method == "POST":
+        location = request.form['location_name']
+        unapprovedStories, all_stories = get_unapprovedStories(location)
+        
+        return render_template("approveStory.html",data =unapprovedStories, unapprovedStories = all_stories, flag = flag)
+    else:
+        return render_template("approveStory.html",flag = flag)
 # Open ai chatbot
 @app.route("/guide", methods=("GET", "POST"))
 def guide():

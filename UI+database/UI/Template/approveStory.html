@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Search Locations</title>
+        <title>Approve Story</title>
         
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
@@ -54,20 +54,9 @@
                 <div class="row gx-4 gx-lg-5">
                     <div class="col-md-10 col-lg-8 mx-auto text-center">
                         <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
-                        <h2 class="text-white mb-5">Search for places you want to know!</h2>
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- * * SB Forms Contact Form * *-->
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- This form is pre-integrated with SB Forms.-->
-                        <!-- To make this form functional, sign up at-->
-                        <!-- https://startbootstrap.com/solution/contact-forms-->
-                        <!-- to get an API token!-->
-                        <!-- <form  name = "searchlocations" action="/searchlocations" method = "POST">
-                            <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
-                            <div ><button  id="submitButton" type="submit" value=" submit">Search</button></div>
-                        </form> -->
-                        <form class="form-signup" name = "searchlocations" action="/searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
-                            <!-- Email address input-->
+                        <h2 class="text-white mb-5">Unapproved Stories</h2>
+                        
+                        <form class="form-signup" name = "unapproved" action="/unapprovedStories" method = "POST" data-sb-form-api-token="API_TOKEN">
                             <div class="row input-group-newsletter">
                                 <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" value = "{{searchtext}}" placeholder="Enter location..." value="" aria-label="Enter location..." autocomplete="off" /></div>
                                 <div class="col-auto"><button class="btn btn-primary" id="submitButton" type="submit">Search</button></div>
@@ -103,7 +92,7 @@
         <tr >
             <td>{{ story.tag.title() }}</td>
             <td>{{ story.description[:50] }}</td>
-            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=0) }}">
+            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
                 <button type="submit" class="btn btn-success">View</button>
             </form></td>
         </tr>
@@ -111,14 +100,14 @@
     </tbody>
 </table>
 
-<h2 class="text-white mb-5">Stories Near Your Selected Location</h2>
+<h2 class="text-white mb-5">All unapproved Stories</h2>
 <table class="styled-table">
     <tbody>
-        {% for story in nearbyStories %}
+        {% for story in unapprovedStories %}
         <tr >
             <td>{{ story.tag.title() }}</td>
             <td>{{ story.description[:50] }}</td>
-            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=0) }}">
+            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
                 <button type="submit" class="btn btn-success">View</button>
             </form></td>
         </tr>

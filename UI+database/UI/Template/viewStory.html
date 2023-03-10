@@ -73,6 +73,16 @@
                                     <h4>{{Location_name}}</h4>
                                     <p class="text-black-50 mb-0">Category  - {{story['tag'].title()}} </p>
                                     <p class="text-black-50 mb-0">Timeline  -  {{story['year']}} </p>
+                                    <p>
+                                        {% if session.get('is_moderator') and is_from_approve ==1 %}
+                                    
+                                        <form  action="{{ url_for('approved', story_id=story.id) }}">
+                                            <button type="submit" class="btn btn-success">Approve</button>
+                                        </form>
+                                        {% endif %}
+                                        
+                                    </p>
+                                    
                                     
                                    
                                     
