@@ -57,24 +57,43 @@
                         <!-- To make this form functional, sign up at-->
                         <!-- https://startbootstrap.com/solution/contact-forms-->
                         <!-- to get an API token!-->
-                        
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="alert">
+                            {% for category, message in messages %}
+                                {% if category == 'error' %}
+                                    <li class="alert-error">{{ message }}</li>
+                                {% elif category == 'success' %}
+                                    <li class="alert-success">{{ message }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
                         <form class="form-signup" name = "addingStory" action="/addingStory" method = "POST" data-sb-form-api-token="API_TOKEN" enctype="multipart/form-data">
                             <!-- Email address input-->
                             <div class="row input-group-newsletter">
-                                <div class="row"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." /></div>
-                                <label>.</label>
-                                <div class="row"><input class="form-control" name = "timeline" id="timeline" type="text" placeholder="Timeline of your story..." value="" aria-label="Timeline of your story..." /></div>
-                                <label>.</label>
-                                <div class="row"><input class="form-control" name = "story" id="story" type="text" placeholder="Start writing your story..." value="" aria-label="Start writing your story..." /></div>
-                                <label>.</label>
-                                <div class="row"><input class="form-control" name = "tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag" /></div>
-                                
+                                <div class="row"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." autocomplete="off"  style="margin-bottom: 15px;"/></div>
+                              
+                                <div class="row"><input class="form-control" name = "timeline" id="timeline" type="text" placeholder="Timeline of your story..." value="" aria-label="Timeline of your story..." style="margin-bottom: 15px;"/></div>
+                               
                                 <div class="row">
-                                    <label>Choose Images: </label>
-                                    <input type="file" name="files[]" id="fileInput" class="form-control" multiple >
+                                    <textarea class="form-control" name="story" id="story" placeholder="START WRITTING YOUR STORY..." style="margin-bottom: 15px;"></textarea>
                                 </div>
-                                <label>.</label>
-                                <div class="row-auto"><button class="btn btn-primary" id="submitButton" type="submit">Upload</button></div>
+                                  
+                                <div class="row"><input class="form-control" name = "tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag" style="margin-bottom: 15px;"/></div>
+                                
+                                <div class="row"><input class="form-control" name = "contributor" id="contributor" type="text" placeholder="Contributor..." value="" aria-label="contributor" style="margin-bottom: 15px;"/></div>
+                                <div class="row">
+                                    <label style="font-weight: bold; color: white;text-align: left;margin-bottom: 15px;">Choose Images: </label>
+                                    <div class="col-auto">
+                                      <input type="file" name="files[]" id="fileInput" class="form-control" multiple>
+                                    </div>
+                                    <div class="col-auto" style="margin-left: 160px;">
+                                      <button class="btn btn-primary" id="submitButton" type="submit">Upload</button>
+                                    </div>
+                                  </div>
+                                  
                                 
                             </div>
                         
@@ -118,7 +137,45 @@
                 });
             });
             </script>
+            <script>
+                // Get all the alert elements
+                var alerts = document.querySelectorAll('.alert');
+              
+                // Loop through each alert element
+                alerts.forEach(function(alert) {
+                  // Set a timeout to remove the alert after 3 seconds
+                  setTimeout(function() {
+                    alert.remove();
+                  }, 5000);
+                });
+              </script>
         
-          
+     <!-- jQuery UI CSS -->
+     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+     <!-- jQuery and jQuery UI JavaScript -->
+     <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+     <script>
+         $(function() {
+             $("#location_name").autocomplete({
+                 source: function(request, response) {
+                 $.ajax({
+                     url: "/autocomplete",
+                     data: { term: request.term },
+                     success: function(data) {
+                     response(data);
+                     }
+                 });
+                 },
+                 select: function(event, ui) {
+                     event.preventDefault();
+                     $("#location_name").val(ui.item.label);
+                 }
+             });
+         });
+
+     </script>
     </body>
 </html>

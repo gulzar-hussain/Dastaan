@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>View Story</title>
+        <title>Approve Story</title>
         
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
@@ -15,13 +15,6 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
-        <style>.description {
-            font-size: 18px;
-            line-height: 1.5;
-            margin-bottom: 30px;
-            text-align: center;
-            color: white;
-          }</style>
     </head>
     <body id="page-top">
         <!-- Navigation-->
@@ -36,14 +29,12 @@
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item"><a class="nav-link" href="{{url_for('guide')}}">Guide</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('searchlocations')}}">Search Story</a></li>
                         {% if session.get('user_id') %}
                         <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}">Logout</a></li>
                         {% else %}
                         <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">login/signup</a></li>
                         {% endif %}
-                        <button onclick="window.history.back();" class="btn btn-primary">Go Back</button>
                     </ul>
                 </div>
             </div>
@@ -62,42 +53,18 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5">
                     <div class="col-md-10 col-lg-8 mx-auto text-center">
-                        <!-- <i class="far fa-paper-plane fa-2x mb-2 text-white"></i> -->
+                        <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
+                        <h2 class="text-white mb-5">Unapproved Stories</h2>
                         
-                        <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
-                            {% for image in images %}
-                            <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=image['file_name']) }}" alt="Image" /></div>
-                            {% endfor %}
-                            <div class="col-xl-4 col-lg-5">
-                                <div class="featured-text text-center text-lg-left">
-                                    <h4>{{Location_name}}</h4>
-                                    <p class="text-black-50 mb-0">Category  - {{story['tag'].title()}} </p>
-                                    <p class="text-black-50 mb-0">Timeline  -  {{story['year']}} </p>
-                                    <p>
-                                        {% if session.get('is_moderator') and is_from_approve ==1 %}
-                                    
-                                        <form  action="{{ url_for('approved', story_id=story.id) }}">
-                                            <button type="submit" class="btn btn-success">Approve</button>
-                                        </form>
-                                        {% endif %}
-                                        
-                                    </p>
-                                    
-                                    
-                                   
-                                    
-        
-                                </div>
+                        <form class="form-signup" name = "unapproved" action="/unapprovedStories" method = "POST" data-sb-form-api-token="API_TOKEN">
+                            <div class="row input-group-newsletter">
+                                <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" value = "{{searchtext}}" placeholder="Enter location..." value="" aria-label="Enter location..." autocomplete="off" /></div>
+                                <div class="col-auto"><button class="btn btn-primary" id="submitButton" type="submit">Search</button></div>
+                                
                             </div>
-                        </div>
-                        <div class="container">
-                            
-                            <div class="description">
-                              {{ story['description'] }}
-                            </div>
-                            
-                          </div>
                         
+                            
+                        </form>
                     </div>
 
                 
@@ -106,7 +73,49 @@
 
 <!-- Define the click event handler -->
 
- 
+
+<!-- Create the table -->
+<table class="styled-table" id="tableId">
+    <!-- {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="alert">
+                            {% for category, message in messages %}
+                                {% if category == 'error' %}
+                                    <li class="alert-danger">{{ message }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %} -->
+    <tbody>
+        {% for story in data %}
+        <tr >
+            <td>{{ story.tag.title() }}</td>
+            <td>{{ story.description[:50] }}</td>
+            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
+                <button type="submit" class="btn btn-success">View</button>
+            </form></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 class="text-white mb-5">All unapproved Stories</h2>
+<table class="styled-table">
+    <tbody>
+        {% for story in unapprovedStories %}
+        <tr >
+            <td>{{ story.tag.title() }}</td>
+            <td>{{ story.description[:50] }}</td>
+            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
+                <button type="submit" class="btn btn-success">View</button>
+            </form></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+                    
                       
                 
                 </div>
@@ -125,7 +134,46 @@
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
        
-        
+        <script>
+            // Get all the alert elements
+            var alerts = document.querySelectorAll('.alert');
+          
+            // Loop through each alert element
+            alerts.forEach(function(alert) {
+              // Set a timeout to remove the alert after 3 seconds
+              setTimeout(function() {
+                alert.remove();
+              }, 3000);
+            });
+          </script>
+
+          <!-- jQuery UI CSS -->
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+        <!-- jQuery and jQuery UI JavaScript -->
+        <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+        <script>
+            $(function() {
+                $("#location_name").autocomplete({
+                    source: function(request, response) {
+                    $.ajax({
+                        url: "/autocomplete",
+                        data: { term: request.term },
+                        success: function(data) {
+                        response(data);
+                        }
+                    });
+                    },
+                    select: function(event, ui) {
+                        event.preventDefault();
+                        $("#location_name").val(ui.item.label);
+                    }
+                });
+            });
+
+        </script>
           
     </body>
 </html>
