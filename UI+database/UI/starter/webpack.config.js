@@ -19,6 +19,7 @@ const webpack = require("webpack");
 const WebpackShellPluginNext = require("webpack-shell-plugin-next");
 const fs = require("fs");
 var nodeModules = {};
+const Dotenv = require("dotenv-webpack");
 
 fs.readdirSync(path.resolve(__dirname, "node_modules"))
   .filter((x) => [".bin"].indexOf(x) === -1)
@@ -79,6 +80,10 @@ const nodeCONFIG = {
         blocking: false,
         parallel: true,
       },
+    }),
+    new Dotenv(),
+    new webpack.DefinePlugin({
+      "process.env": JSON.stringify(process.env),
     }),
   ],
   resolve: {

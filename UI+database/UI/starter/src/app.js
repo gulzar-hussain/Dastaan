@@ -17,15 +17,16 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const apiOptions = {
-  apiKey: SDK_API,
+  apiKey: "AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA",
   version: "beta",
+  libraries: ["places"],
 };
 
-const mapOptions = {
+let mapOptions = {
   tilt: 0,
   heading: 0,
   zoom: 18,
-  center: { lat: 35.6594945, lng: 139.6999859 },
+  center: { lat: 0, lng: 0 },
   mapId: "2f95a159e490bcec",
 };
 
@@ -33,72 +34,19 @@ async function initMap() {
   const mapDiv = document.getElementById("map");
   const apiLoader = new Loader(apiOptions);
   await apiLoader.load();
-  return new google.maps.Map(mapDiv, mapOptions);
-}
-
-function initAutocomplete(map) {
-  // Create the search box and link it to the UI element.
-  const input = document.getElementById("pac-input");
-  const searchBox = new google.maps.places.SearchBox(input);
-
-  map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-  // Bias the SearchBox results towards current map's viewport.
-  map.addListener("bounds_changed", () => {
-    searchBox.setBounds(map.getBounds());
-  });
-
-  let markers = [];
-
-  // Listen for the event fired when the user selects a prediction and retrieve
-  // more details for that place.
-  searchBox.addListener("places_changed", () => {
-    const places = searchBox.getPlaces();
-
-    if (places.length == 0) {
-      return;
+  const searchBox = new google.maps.places.Autocomplete(
+    document.getElementById("pac-input")
+  );
+  searchBox.addListener("place_changed", () => {
+    const place = searchBox.getPlace();
+    if (place.geometry) {
+      map.setCenter(place.geometry.location);
+    } else {
+      console.error("Error: No location found for the selected place.");
     }
-
-    // Clear out the old markers.
-    markers.forEach((marker) => {
-      marker.setMap(null);
-    });
-    markers = [];
-
-    // For each place, get the icon, name and location.
-    const bounds = new google.maps.LatLngBounds();
-
-    places.forEach((place) => {
-      if (!place.geometry || !place.geometry.location) {
-        console.log("Returned place contains no geometry");
-        return;
-      }
-
-      const icon = {
-        url: place.icon,
-        size: new google.maps.Size(71, 71),
-        origin: new google.maps.Point(0, 0),
-        anchor: new google.maps.Point(17, 34),
-        scaledSize: new google.maps.Size(25, 25),
-      };
-
-      // Create a marker for each place.
-      markers.push(
-        new google.maps.Marker({
-          map,
-          icon,
-          title: place.name,
-          position: place.geometry.location,
-        })
-      );
-      if (place.geometry.viewport) {
-        // Only geocodes have viewport.
-        bounds.union(place.geometry.viewport);
-      } else {
-        bounds.extend(place.geometry.location);
-      }
-    });
-    map.fitBounds(bounds);
   });
+
+  return new google.maps.Map(mapDiv, mapOptions);
 }
 
 function initWebGLOverlayView(map) {
@@ -179,5 +127,23 @@ function initWebGLOverlayView(map) {
 (async () => {
   const map = await initMap();
   initWebGLOverlayView(map);
-  window.initAutocomplete = initAutocomplete(map);
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        var pos = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        // Update the map's center to the user's current location
+        map.setCenter(pos);
+      },
+      function () {
+        // Handle errors if geolocation is not supported or permission is denied
+        console.error("Error: The Geolocation service failed.");
+      }
+    );
+  } else {
+    // Handle errors if geolocation is not supported
+    console.error("Error: Your browser doesn't support geolocation.");
+  }
 })();
