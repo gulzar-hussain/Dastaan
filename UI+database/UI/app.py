@@ -20,16 +20,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def get_db_connection():
 
     conn = None
     conn = psycopg2.connect(
-          database='mydastaan',
-          user='postgres',
-          password='google',
-          host='localhost',
-          port='5432'
-      )
+        database='mydastaan',
+        user='postgres',
+        password='google',
+        host='localhost',
+        port='5432'
+    )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     return conn, cur
 
@@ -65,12 +66,14 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 def get_location_id(address):
     geolocator = Nominatim(user_agent="dastaan")
     location = geolocator.geocode(address)
     if location is not None:
         conn, cur = get_db_connection()
-        cur.execute("SELECT id from locations WHERE longitude ::numeric = %s AND latitude ::numeric = %s",(location.longitude,location.latitude))
+        cur.execute("SELECT id from locations WHERE longitude ::numeric = %s AND latitude ::numeric = %s",
+                    (location.longitude, location.latitude))
         location_id = cur.fetchone()[0]
         cur.close()
         conn.commit()
@@ -78,7 +81,7 @@ def get_location_id(address):
         return location_id
     else:
         return None
-    
+
 
 def get_location_coordinates(address):
     geolocator = Nominatim(user_agent="dastaan")
@@ -86,9 +89,11 @@ def get_location_coordinates(address):
     print(location)
     if location is not None:
         conn, cur = get_db_connection()
-        cur.execute("INSERT INTO locations (longitude, latitude,location, location_data) VALUES (%s, %s,%s, ST_SetSRID(ST_GeomFromText('POINT(' || %s || ' ' || %s || ')'), 4326)) ON CONFLICT DO NOTHING RETURNING id", (location.longitude, location.latitude,address, location.longitude, location.latitude))
-        address =address.lower()
-        cur.execute("SELECT id from locations WHERE longitude ::numeric = %s AND latitude ::numeric = %s",(location.longitude,location.latitude))
+        cur.execute("INSERT INTO locations (longitude, latitude,location, location_data) VALUES (%s, %s,%s, ST_SetSRID(ST_GeomFromText('POINT(' || %s || ' ' || %s || ')'), 4326)) ON CONFLICT DO NOTHING RETURNING id",
+                    (location.longitude, location.latitude, address, location.longitude, location.latitude))
+        address = address.lower()
+        cur.execute("SELECT id from locations WHERE longitude ::numeric = %s AND latitude ::numeric = %s",
+                    (location.longitude, location.latitude))
         location_id = cur.fetchone()[0]
         cur.close()
         conn.commit()
@@ -96,15 +101,16 @@ def get_location_coordinates(address):
         return location_id
     else:
         return None
-    
+
+
 def get_nearby_stories(location):
-  geolocator = Nominatim(user_agent="dastaan")
-  location = geolocator.geocode(location)       
-  if location is not None:
-    conn, cur = get_db_connection()
-    long = location.longitude
-    lat = location.latitude
-    query= '''
+    geolocator = Nominatim(user_agent="dastaan")
+    location = geolocator.geocode(location)
+    if location is not None:
+        conn, cur = get_db_connection()
+        long = location.longitude
+        lat = location.latitude
+        query = '''
     SELECT * FROM stories WHERE is_verified = true AND location_id IN (
     SELECT id
     FROM locations WHERE ST_DWithin(
@@ -115,14 +121,15 @@ def get_nearby_stories(location):
     SELECT id
     FROM locations WHERE location_data = ST_SetSRID(ST_MakePoint(%s, %s), 4326)
     ) ORDER BY year DESC;'''
-    values = (long,lat,long,lat)
-    cur.execute(query,values)
-    nearby_stories = cur.fetchall()
-    
-    cur.close()
-    conn.close()
-    return nearby_stories
- 
+        values = (long, lat, long, lat)
+        cur.execute(query, values)
+        nearby_stories = cur.fetchall()
+
+        cur.close()
+        conn.close()
+        return nearby_stories
+
+
 @app.route("/", methods=['GET', 'POST'])
 def dashboard():
     if request.method == 'POST':
@@ -138,12 +145,14 @@ def dashboard():
             print(stories)
             nearbyStories = get_nearby_stories(location)
             conn.close()
-            return render_template('searchlocations.html', data=stories,nearbyStories = nearbyStories, searchtext=location)
+            return render_template('searchlocations.html', data=stories, nearbyStories=nearbyStories, searchtext=location)
         except Exception as error:
             print(error)
         return render_template('searchlocations.html')
-   
+
     return render_template('index.html')
+@app.route("/addd")
+def addd():return render_template("addpersonalstory.html")
 
 @app.route("/autocomplete")
 def autocomplete():
@@ -158,10 +167,21 @@ def autocomplete():
     """
     values = (term, f"%{term}%")
     cur.execute(query, values)
-    results = [{'label': row[0]} for row in cur.fetchall()]
+    results1 = [{'label': row[0]} for row in cur.fetchall()]
+    
+    query = '''SELECT tag, SIMILARITY(tag, %s) AS score 
+        FROM stories 
+        WHERE tag ILIKE %s
+        ORDER BY score DESC
+        LIMIT 10'''
+    values = (term, f"%{term}%")
+    cur.execute(query, values)
+    results2 = [{'label': row[0]} for row in cur.fetchall()]
+    
     conn.close()
-    return jsonify(results)
- 
+    return jsonify(results1,results2)
+
+
 @app.route('/image/<filename>')
 def get_image(filename):
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -173,7 +193,7 @@ def get_image(filename):
 
 
 @app.route('/location/<int:story_id>/<int:flag>')
-def getlocations(story_id,flag):
+def getlocations(story_id, flag):
     # Get the story from the database based on the story_id
     # Render the HTML page with the story data
     try:
@@ -189,14 +209,14 @@ def getlocations(story_id,flag):
         print(location)
         cur.close()
         conn.close()
-        
-        
-        return render_template('viewstory.html', story=story, images=images, Location_name=location, is_from_approve =flag )
+
+        return render_template('viewstory.html', story=story, images=images, Location_name=location, is_from_approve=flag)
 
     except Exception as error:
         print(error)
 
     return render_template('viewstory.html')
+
 
 @app.route('/approved/<int:story_id>')
 # @login_required(role='moderator')
@@ -205,7 +225,8 @@ def approved(story_id):
     # Render the HTML page with the story data
     try:
         conn, cur = get_db_connection()
-        cur.execute("UPDATE stories SET is_verified = TRUE WHERE id = %s", (story_id,))
+        cur.execute(
+            "UPDATE stories SET is_verified = TRUE WHERE id = %s", (story_id,))
         conn.commit()
         cur.close()
         conn.close()
@@ -235,7 +256,7 @@ def searchlocations():
             # print(stories)
             nearbyStories = get_nearby_stories(location)
             conn.close()
-            return render_template('searchlocations.html', data=stories, nearbyStories = nearbyStories)
+            return render_template('searchlocations.html', data=stories, nearbyStories=nearbyStories)
         except Exception as error:
             print(error)
     return render_template('searchlocations.html')
@@ -264,7 +285,7 @@ def addingStory():
         location = request.form['location_name']
         description = request.form['story']
         contributor = request.form['contributor']
-        
+
         try:
             location_id = get_location_coordinates(location)
             if location_id:
@@ -272,15 +293,16 @@ def addingStory():
             location = location.lower()
             add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor) VALUES 
             (%s,%s ,%s, %s,%s,%s) RETURNING id'''
-            values = (tag, description, user_id, location_id, year,contributor)
+            values = (tag, description, user_id,
+                      location_id, year, contributor)
             cur.execute(add_story, values)
             '''get id of the story that is just inserted to stories table above'''
             story_id = cur.fetchone()[0]
             conn.commit()
-            
+
         except psycopg2.Error as e:
             conn.rollback()
-            flash('Story upload failed! :(','error')
+            flash('Story upload failed! :(', 'error')
             print("Error: ", e)
         # image upload
 
@@ -292,15 +314,16 @@ def addingStory():
 
                     if file and allowed_file(file.filename):
                         filename = secure_filename(file.filename)
-                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                        filepath = os.path.join(
+                            app.config['UPLOAD_FOLDER'], filename)
                         file.save(filepath)
                         cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, %s,%s)", [
                                     filename, now, story_id])
                         conn.commit()
-                        flash('Story uploaded successfully! :)','success')
+                        flash('Story uploaded successfully! :)', 'success')
             except psycopg2.Error as e:
                 conn.rollback()
-                flash('Story upload failed! :(','error')
+                flash('Story upload failed! :(', 'error')
                 print("Error: ", e)
         cur.close()
         conn.close()
@@ -379,7 +402,7 @@ def login():
         if user:
             # Verify whether user is verified
             if user[7]:
-                
+
                 # Verify password hash
                 if check_password_hash(user[4], password):
                     # Set session variables
@@ -391,12 +414,12 @@ def login():
                     conn.close()
 
                     return render_template("index.html")
-            
+
                 else:
                     flash('Invalid email or password.', 'error')
                     return redirect(url_for('login'))
             else:
-                flash("Please verify your email first",'error')
+                flash("Please verify your email first", 'error')
                 return redirect(url_for('login'))
         else:
             flash('Invalid email or password.', 'error')
@@ -429,14 +452,12 @@ def verify_email(token):
 
 @app.route("/logout")
 def logout():
-    
+
     # session.pop("user_id", None)
     # session.pop("is_moderator", None)
     session.clear()
     # flash("Logout successful!", "success")
     return redirect(url_for("dashboard"))
-
-
 
 
 # @app.route("/get")
@@ -456,25 +477,30 @@ def get_unapprovedStories(location):
     conn.close()
     return stories, all_stories
 
+
 @app.route("/approveStory", methods=("GET", "POST"))
 # @login_required(role='moderator')
 def approveStory():
     if session['is_moderator']:
         flag = 1
         unapprovedStories, all_stories = get_unapprovedStories("")
-        return render_template("approveStory.html",data =unapprovedStories, unapprovedStories = all_stories, flag = flag)
+        return render_template("approveStory.html", data=unapprovedStories, unapprovedStories=all_stories, flag=flag)
     abort(400)
+
+
 @app.route("/unapprovedStories", methods=("GET", "POST"))
 def unapprovedStories():
     flag = 1
     if request.method == "POST":
         location = request.form['location_name']
         unapprovedStories, all_stories = get_unapprovedStories(location)
-        
-        return render_template("approveStory.html",data =unapprovedStories, unapprovedStories = all_stories, flag = flag)
+
+        return render_template("approveStory.html", data=unapprovedStories, unapprovedStories=all_stories, flag=flag)
     else:
-        return render_template("approveStory.html",flag = flag)
+        return render_template("approveStory.html", flag=flag)
 # Open ai chatbot
+
+
 @app.route("/guide", methods=("GET", "POST"))
 def guide():
     if request.method == "POST":
@@ -484,14 +510,13 @@ def guide():
             prompt=generate_prompt(animal),
             temperature=0.6,
         )
-        
+
         return redirect(url_for("guide", result=response.choices[0].text))
 
     result = request.args.get("result")
-    
+
     return render_template("guide.html", result=result)
-      
-    
+
 
 def generate_prompt(animal):
     return """Where is this place?

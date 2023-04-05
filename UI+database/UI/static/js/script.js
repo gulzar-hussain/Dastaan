@@ -68,3 +68,12 @@ function initMap() {
 }
 
 window.initMap = initMap;
+document.getElementById('btn-current-location').addEventListener('click', function() {
+  document.getElementById('map').style.display = 'block'; // Replace with your modal or div ID
+  initMap();
+});
+
+// Close the modal or div when the close button is clicked
+document.getElementById('btn-close').addEventListener('click', function() {
+  document.getElementById('map').style.display = 'none'; // Replace with your modal or div ID
+});

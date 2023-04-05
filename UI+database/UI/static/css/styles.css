@@ -11759,10 +11759,12 @@ body {
 .box {
   width: 200px;
   height: 200px;
-  background: #cce;
+  /* background-image: url("C:/Users/HU-Student/Documents/GitHub/Dastaan/UI+database/UI/static/uploads/EmpressMarket.jpg"); */
+  background: #6c757d;
   display: inline-block;
   margin-left: 10px;
   margin-top: 10px;
   vertical-align: top;
   text-align: center;
 }
+
