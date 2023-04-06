@@ -129,8 +129,9 @@ function iwClick(lat, lng) {
     body: JSON.stringify({ lat: lat, lng: lng }),
     headers: { "Content-Type": "application/json" },
   })
-    .then((response) => response.json())
-    .then((data) => console.log(data))
+    .then((response) =>
+      window.location.replace("http://127.0.0.1:5000/")
+    )
     .catch((error) => console.error(error));
 }
 

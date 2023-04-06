@@ -534,7 +534,9 @@ def receive_coordinates():
     lat = data['lat']
     lng = data['lng']
     # Do something with the coordinates
-    return jsonify({'message': 'Coordinates received'})   
+    
+    return jsonify({'message': 'Coordinates received'})
+    # return redirect(url_for("dashboard"))   
      
 if __name__ == "__main__":
     app.run(host='localhost', debug=True)
