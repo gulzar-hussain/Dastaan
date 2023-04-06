@@ -188,7 +188,7 @@
                         url: "/autocomplete",
                         data: { term: request.term },
                         success: function(data) {
-                        response(data);
+                        response(data[0]);
                         }
                     });
                     },
