@@ -123,6 +123,16 @@ function initWebGLOverlayView(map) {
   };
   webGLOverlayView.setMap(map);
 }
+function iwClick(lat, lng) {
+  fetch("http://127.0.0.1:5000/mapcoordinates", {
+    method: "POST",
+    body: JSON.stringify({ lat: lat, lng: lng }),
+    headers: { "Content-Type": "application/json" },
+  })
+    .then((response) => response.json())
+    .then((data) => console.log(data))
+    .catch((error) => console.error(error));
+}
 
 (async () => {
   const map = await initMap();
@@ -146,4 +156,24 @@ function initWebGLOverlayView(map) {
     // Handle errors if geolocation is not supported
     console.error("Error: Your browser doesn't support geolocation.");
   }
+
+  map.addListener("click", (event) => {
+    // Get the coordinates of the clicked location
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    let buttonName = "Go To Stories";
+    const infoWindow = new google.maps.InfoWindow({});
+    var div = document.createElement("div");
+    div.innerHTML = buttonName;
+    div.onclick = function () {
+      iwClick(lat, lng);
+    };
+    infoWindow.setContent(div);
+
+    // Set the position of the info window to the clicked location
+    infoWindow.setPosition(event.latLng);
+
+    // Open the info window
+    infoWindow.open(map);
+  });
 })();

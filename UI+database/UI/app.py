@@ -1,4 +1,5 @@
 from flask import redirect
+from flask_cors import CORS
 import re
 import requests
 import dashboard
@@ -39,7 +40,7 @@ app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = os.environ.get('APP_SECRET_KEY')
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 # app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
-
+CORS(app, methods=["POST"])
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
@@ -527,6 +528,13 @@ def generate_prompt(animal):
         animal.capitalize()
     )
 
-
+@app.route('/mapcoordinates', methods=('GET','POST'))
+def receive_coordinates():
+    data = request.get_json()
+    lat = data['lat']
+    lng = data['lng']
+    # Do something with the coordinates
+    return jsonify({'message': 'Coordinates received'})   
+     
 if __name__ == "__main__":
     app.run(host='localhost', debug=True)
