@@ -100,6 +100,7 @@ def get_location_coordinates(address):
         conn.close()
         return location_id
     else:
+        print("Failed in fetching location")
         return None
 
 
@@ -151,8 +152,7 @@ def dashboard():
         return render_template('searchlocations.html')
 
     return render_template('index.html')
-@app.route("/addd")
-def addd():return render_template("addpersonalstory.html")
+
 
 @app.route("/autocomplete")
 def autocomplete():
@@ -200,6 +200,12 @@ def getlocations(story_id, flag):
         conn, cur = get_db_connection()
         cur.execute("SELECT * FROM stories WHERE id = %s", (story_id,))
         story = cur.fetchone()
+        contributor = story['contributor']
+        if not contributor: 
+            user_id = story['user_id']
+            cur.execute("SELECT username FROM users WHERE id = %s", (user_id,))
+            contributor = cur.fetchone()[0]
+            print(contributor)
         location_id = story['location_id']
         cur.execute("SELECT * FROM images WHERE story_id = %s", (story_id,))
         images = cur.fetchall()
@@ -210,7 +216,7 @@ def getlocations(story_id, flag):
         cur.close()
         conn.close()
 
-        return render_template('viewstory.html', story=story, images=images, Location_name=location, is_from_approve=flag)
+        return render_template('viewstory.html', story=story, images=images, Location_name=location, is_from_approve=flag,contributor = contributor)
 
     except Exception as error:
         print(error)
@@ -287,14 +293,15 @@ def addingStory():
         contributor = request.form['contributor']
 
         try:
+            
             location_id = get_location_coordinates(location)
             if location_id:
                 print("Location added successfully!")
             location = location.lower()
-            add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor) VALUES 
-            (%s,%s ,%s, %s,%s,%s) RETURNING id'''
+            add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on) VALUES 
+            (%s,%s ,%s, %s,%s,%s,%s) RETURNING id'''
             values = (tag, description, user_id,
-                      location_id, year, contributor)
+                      location_id, year, contributor,now)
             cur.execute(add_story, values)
             '''get id of the story that is just inserted to stories table above'''
             story_id = cur.fetchone()[0]
@@ -453,17 +460,11 @@ def verify_email(token):
 @app.route("/logout")
 def logout():
 
-    # session.pop("user_id", None)
-    # session.pop("is_moderator", None)
+    session.pop("user_id", None)
+    session.pop("is_moderator", None)
     session.clear()
     # flash("Logout successful!", "success")
     return redirect(url_for("dashboard"))
-
-
-# @app.route("/get")
-# def get_bot_response():
-#     userText = request.args.get('msg')
-#     return str(bot.get_response(userText))
 
 
 def get_unapprovedStories(location):
