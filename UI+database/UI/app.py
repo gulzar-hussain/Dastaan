@@ -133,12 +133,54 @@ def get_nearby_stories(location):
 
 @app.route("/", methods=['GET', 'POST'])
 def dashboard():
+    
+    # latest story uploaded
+    query1 ='''
+        SELECT s.id, s.description, s.uploaded_on, i.id AS image_id, i.file_name
+        FROM stories AS s
+        INNER JOIN images AS i ON s.id = i.story_id
+        WHERE s.is_verified = true
+        ORDER BY s.uploaded_on DESC
+        LIMIT 1;
+    '''
+    query2 ='''
+        SELECT s.id, s.description, s.year, i.id AS image_id, i.file_name
+        FROM stories AS s
+        INNER JOIN public.images AS i ON s.id = i.story_id
+        WHERE s.year = (SELECT MIN(year) FROM stories)
+        ORDER BY s.id ASC
+        LIMIT 1;
+    '''
+    query3 ='''
+        SELECT * from images LIMIT 5;
+    '''
+    try:
+        conn, cur = get_db_connection()
+        cur.execute(query1)
+        latest_story = cur.fetchone()
+        # print("latest story",latest_story)
+        
+        cur.execute(query2)
+        historic_story = cur.fetchone()
+        
+        cur.execute(query3)
+        images = cur.fetchall()
+        print('images',images)
+        conn.close()
+    except Exception as error:
+        print(error)
+        
     if request.method == 'POST':
         location = request.form['location_name']
         location = location.lower()
         print(location)
         try:
             conn, cur = get_db_connection()
+            # latest story uploaded
+            cur.execute('SELECT * FROM stories ORDER BY uploaded_on DESC LIMIT 1;')
+            latest_story = cur.fetchall()
+            print(latest_story)
+          
             query = 'SELECT * FROM stories WHERE is_verified = true AND location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
             values = (location,)
             cur.execute(query, values)
@@ -151,9 +193,11 @@ def dashboard():
             print(error)
         return render_template('searchlocations.html')
 
-    return render_template('index.html')
+    return render_template('index.html',latestStory = latest_story,historicStory = historic_story, images = images)
 
-
+@app.route("/test")
+def test():
+    return render_template("addpersonalstory.html")
 @app.route("/autocomplete")
 def autocomplete():
     term = request.args.get('term')
@@ -169,7 +213,7 @@ def autocomplete():
     cur.execute(query, values)
     results1 = [{'label': row[0]} for row in cur.fetchall()]
     
-    query = '''SELECT tag, SIMILARITY(tag, %s) AS score 
+    query = '''SELECT DISTINCT tag, SIMILARITY(tag, %s) AS score 
         FROM stories 
         WHERE tag ILIKE %s
         ORDER BY score DESC
@@ -420,7 +464,7 @@ def login():
                     flash('Login successful.', 'success')
                     conn.close()
 
-                    return render_template("index.html")
+                    return redirect(url_for('dashboard'))
 
                 else:
                     flash('Invalid email or password.', 'error')
