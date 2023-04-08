@@ -61,9 +61,19 @@
                         <!-- <i class="far fa-paper-plane fa-2x mb-2 text-white"></i> -->
                         
                         <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
-                            {% for image in images %}
-                            <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=image['file_name']) }}" alt="Image" /></div>
-                            {% endfor %}
+                            <div class="carousel" data-carousel>
+                                <button class="carousel-button prev" data-carousel-button="prev">&#8656;</button>
+                                <button class="carousel-button next" data-carousel-button="next">&#8658;</button>
+                                <ul data-slides>
+                                   
+                                      {% for image in images %}
+                                      <li class="slide" data-active>
+                                      <img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=image['file_name']) }}" alt="Nature Image #1">
+                                    </li> 
+                                      {% endfor %}
+                                  
+                                </ul>
+                              </div>
                             <div class="col-xl-4 col-lg-5">
                                 <div class="featured-text text-center text-lg-left">
                                     <h4 class="text-white-50 mb-0">{{Location_name}}</h4>
@@ -110,6 +120,26 @@
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+        <script>
+            const buttons = document.querySelectorAll("[data-carousel-button]")
+
+            buttons.forEach(button => {
+            button.addEventListener("click", () => {
+                const offset = button.dataset.carouselButton === "next" ? 1 : -1
+                const slides = button
+                .closest("[data-carousel]")
+                .querySelector("[data-slides]")
+
+                const activeSlide = slides.querySelector("[data-active]")
+                let newIndex = [...slides.children].indexOf(activeSlide) + offset
+                if (newIndex < 0) newIndex = slides.children.length - 1
+                if (newIndex >= slides.children.length) newIndex = 0
+
+                slides.children[newIndex].dataset.active = true
+                delete activeSlide.dataset.active
+            })
+            })
+        </script>
        
     </body>
     

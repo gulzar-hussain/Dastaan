@@ -152,7 +152,7 @@ def dashboard():
         LIMIT 1;
     '''
     query3 ='''
-        SELECT * from images LIMIT 5;
+        SELECT * from images LIMIT 10;
     '''
     try:
         conn, cur = get_db_connection()
@@ -165,7 +165,7 @@ def dashboard():
         
         cur.execute(query3)
         images = cur.fetchall()
-        print('images',images)
+        
         conn.close()
     except Exception as error:
         print(error)
@@ -197,7 +197,7 @@ def dashboard():
 
 @app.route("/test")
 def test():
-    return render_template("addpersonalstory.html")
+    return render_template("accountsettings.html")
 @app.route("/autocomplete")
 def autocomplete():
     term = request.args.get('term')

@@ -84,34 +84,6 @@
                     <!-- Include jQuery library -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- Define the click event handler -->
-
-
-<!-- Create the table -->
-<!-- <table class="styled-table" id="tableId"> -->
-    <!-- {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <ul class="alert">
-                            {% for category, message in messages %}
-                                {% if category == 'error' %}
-                                    <li class="alert-danger">{{ message }}</li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% endwith %} -->
-    <!-- <tbody>
-        {% for story in data %}
-        <tr >
-            <td>{{ story.tag.title() }}</td>
-            <td>{{ story.description[:50] }}</td>
-            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=0) }}">
-                <button type="submit" class="btn btn-success">View</button>
-            </form></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table> -->
 <div class="3box">
     {% for story in data %}
     <!-- (nine numbered divs) -->
