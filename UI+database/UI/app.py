@@ -133,7 +133,6 @@ def get_nearby_stories(location):
 
 @app.route("/", methods=['GET', 'POST'])
 def dashboard():
-    
     # latest story uploaded
     query1 ='''
         SELECT s.id, s.description, s.uploaded_on, i.id AS image_id, i.file_name
@@ -407,13 +406,22 @@ def register():
         user = cur.fetchone()
 
         if user:
-            flash('Email is already registered, please use another email.', 'danger')
-            return redirect(url_for('register'))
+            flash('Email is already registered, please use another email.', 'error')
+            return redirect(url_for('dashboard'))
 
         # Insert new user into database
-        cur.execute('INSERT INTO users (username, email, password, first_name, last_name, is_moderator, is_verified) VALUES (%s, %s, %s, %s, %s, %s, %s)',
-                    (username, email, password_hash, first_name, last_name, is_moderator, is_verified))
-        conn.commit()
+        else:
+            try:
+                cur.execute('INSERT INTO users (username, email, password, first_name, last_name, is_moderator, is_verified) VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                            (username, email, password_hash, first_name, last_name, is_moderator, is_verified))
+                conn.commit()
+                flash('Registration successful. Please check your email to verify your account.', 'success')
+                return redirect(url_for('dashboard'))
+            except psycopg2.Error as e:
+                    conn.rollback()
+                    flash('Registration Failed! :(', 'error')
+                    print("Error: ", e)
+        
 
         # Generate email verification token
         # token = ts.dumps(email, salt='email-verify')
@@ -428,10 +436,9 @@ def register():
         # # Send email
         # mail.send(message)
 
-        flash('Registration successful. Please check your email to verify your account.', 'success')
-        return redirect(url_for('login'))
+                    
 
-    return render_template('login.html')
+    return redirect(url_for('dashboard'))
 
 # User login route
 
@@ -463,20 +470,25 @@ def login():
                     session['username'] = user[1]
                     flash('Login successful.', 'success')
                     conn.close()
-
+                    
                     return redirect(url_for('dashboard'))
 
                 else:
-                    flash('Invalid email or password.', 'error')
-                    return redirect(url_for('login'))
+                    flash ('Invalid email or password.', 'error')
+                    return redirect(url_for('dashboard'))
+                    # return redirect(url_for('login'))
             else:
-                flash("Please verify your email first", 'error')
-                return redirect(url_for('login'))
+                flash ("Please verify your email first", 'error')
+                
+                return redirect(url_for('dashboard'))
+                # return redirect(url_for('login'))
         else:
             flash('Invalid email or password.', 'error')
-            return redirect(url_for('login'))
+            
+            return redirect(url_for('dashboard'))
+            # return redirect(url_for('login'))
     else:
-        return render_template('login.html')
+        return redirect(url_for('dashboard'))
 
 
 @app.route("/verify/<token>")
@@ -507,7 +519,7 @@ def logout():
     session.pop("user_id", None)
     session.pop("is_moderator", None)
     session.clear()
-    # flash("Logout successful!", "success")
+    flash("Logout successful!", "success")
     return redirect(url_for("dashboard"))
 
 

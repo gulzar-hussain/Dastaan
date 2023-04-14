@@ -16,6 +16,145 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+        <style>
+             *
+{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+           
+nav ul li a
+{
+    cursor: pointer;
+}
+#login-form
+{
+    display: none;
+    z-index: 9999;
+}
+.form-box
+{
+    width:380px;
+	height:530px;
+    margin-top: 70px;
+	position:absolute;
+    margin-left: 500px;
+	background:rgba(0,0,0,0.8);
+	padding:10px;
+    overflow: hidden;
+    border-radius:30px;
+}
+.button-box
+{
+	width:220px;
+	margin:35px auto;
+	position:relative;
+	box-shadow: 0 0 20px 9px #ff61241f;
+	border-radius: 30px;
+    height: 42px;
+}
+.toggle-btnn
+{
+	padding:10px 27px;
+	cursor:pointer;
+	background:transparent;
+    color:#fff;
+	border:0;
+	outline: none;
+	position: relative;
+}
+#btnn
+{
+	top: 0;
+	left:0;
+	position: absolute;
+	width: 110px;
+	height: 100%;
+	background-color: #64a19d;
+    border-color: #64a19d;
+	border-radius: 30px;
+	transition: .5s;
+}
+.input-group-login
+{
+	top: 150px;
+	position:absolute;
+	width:280px;
+	transition:.5s;
+}
+.input-group-register
+{
+    top: 120px;
+	position:absolute;
+	width:280px;
+	transition:.5s;
+}
+
+.input-field
+{
+	width: 100%;
+	padding:10px 0;
+	margin:5px 0;
+	border-left:0;
+	border-top:0;
+	border-right:0;
+	border-bottom: 1px solid #fff;
+	outline:none;
+	background: transparent;
+    
+}
+
+.submit-btnn
+{
+	width: 85%;
+	padding: 10px 30px;
+	cursor: pointer;
+	display: block;
+	margin: auto;
+	color: #fff;
+    background-color: #64a19d;
+    border-color: #64a19d;
+	border: 0;
+	outline: none;
+	border-radius: 30px;
+}
+.submit-btnn:hover {
+  color: #fff;
+  background-color: #558985;
+  border-color: #50817e;
+}
+.check-box
+{
+	margin: 30px 10px 34px 0;
+}
+span
+{
+	color:#fff;
+	font-size:12px;
+	bottom:68px;
+	position:absolute;
+    margin-bottom: 5px;
+}
+#login
+{
+	left:50px;
+}
+#login input
+{
+	color:white;
+	font-size:15;
+}
+#register
+{
+	left:450px;
+}
+#register input
+{
+	color:white;
+	font-size: 15;
+}
+        </style>
     </head>
     <body id="page-top">
         <!-- Navigation-->
@@ -37,24 +176,80 @@
                         <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}">Logout</a></li>
                         {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">login/signup</a></li>
+                        <li class="nav-item"><a class="nav-link" id= "loginbtn" onclick="document.getElementById('login-form').style.display='block' " style="width:auto;">Login</a></li>
                         {% endif %}
                     </ul>
                 </div>
             </div>
         </nav>
+        
+        </div>
         <!-- Masthead-->
-        <header class="masthead">
+        <header class="masthead" id="masthead">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="alert">
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <li class="alert-danger">{{ message }}</li>
+                        {% elif category == 'success' %}
+                            <li class="alert-success">{{ message }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <script>
+            // Get all the alert elements
+            var alerts = document.querySelectorAll('.alert');
+          
+            // Loop through each alert element
+            alerts.forEach(function(alert) {
+              // Set a timeout to remove the alert after 3 seconds
+              setTimeout(function() {
+                alert.remove();
+              }, 3000);
+            });
+          </script>
+            <div id= 'login-form' class='login-page'>
+                <div class="form-box">
+                    <div class='button-box'>
+                        <div id='btnn'></div>
+                        <button type='button'onclick='login()'class='toggle-btnn'>Log In</button>
+                        <button type='button'onclick='register()'class='toggle-btnn'>Register</button>
+                    </div>
+                    <form id='login' class='input-group-login' action="login" method = "POST">
+                        <input type='text'class='input-field'name="email" placeholder='Enter Email' required >
+                <input type='password'class='input-field'name="password" placeholder='Enter Password' required>
+                <input type='checkbox'class='check-box'><span>Remember Password</span>
+                <a href="/dashboard">
+                    <button type='submit'class='submit-btnn'>Log in</button>
+                </a>
+                
+             </form>
+             <form id='register' class='input-group-register' action="register" method = "POST">
+                <input type='text'class='input-field' name="username" placeholder='Username' maxlength="15" required>
+                 <input type='text'class='input-field'name="first" placeholder='First Name' required>
+                 <input type='text'class='input-field' name="last"placeholder='Last Name ' required>
+                 <input type='email'class='input-field'name="email" placeholder='Enter Email' required>
+                 <input type='password'class='input-field'name="pswd" placeholder='Enter Password' required>
+                        <button type='submit'class='submit-btnn'>Register</button>
+                 </form>
+                </div>
+            </div>
             <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
                 <div class="d-flex justify-content-center">
                     <div class="text-center">
                         <h1 class="mx-auto my-0 text-uppercase">Dastaan</h1>
                         <h2 class="text-white-50 mx-auto mt-2 mb-5">Digital Museum for Karachi</h2>
-                        <a class="btn btn-primary" href="{{url_for('login')}}">Get Started</a>
+                     
+                        <a class="btn btn-primary" href="#search">Get Started</a>
+                        
                     </div>
                 </div>
             </div>
         </header>
+        
         <!-- About-->
         <section class="about-section text-center" >
             <div class="container px-4 px-lg-5">
@@ -90,7 +285,7 @@
                     <div class="col-xl-4 col-lg-5">
                         <div class="featured-text text-center text-lg-left">
                             <h4>Most Visited</h4>
-                            <p class="text-black-50 mb-0">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc volutpat, magna sit amet sollicitudin lobortis, erat risus ullamcorper lectus, fringilla molestie turpis elit in magna. Nulla ultricies eleifend feugiat. Nullam vitae nisi at velit rhoncus sollicitudin vel ac orci. Vivamus elementum nulla dolor, et dapibus nisl tristique quis. Nullam in lectus ornare lacus placerat volutpat. Maecenas et feugiat metus, non ultricies magna.</p>
+                            <p class="text-black-50 mb-0" style="font-family: 'Noto Nastaliq Urdu', sans-serif; text-align: justify;">Discover the stories that our users love the most! Our Most Visited section showcases the tales that have captured the hearts and minds of our community. From tales of adventure to tales of love, these stories have proven to be a hit with our readers. Take a look and see why these stories are so beloved.</p>
                         </div>
                     </div>
                 </div>
@@ -102,7 +297,7 @@
                             <div class="d-flex h-100">
                                 <div class="project-text w-100 my-auto text-center text-lg-left">
                                     <h4 class="text-white">Recently Added</h4>
-                                    <p class="mb-0 text-white-50">{{latestStory['description'][:600]}}
+                                    <p class="mb-0 text-white-50" style="font-family: 'Noto Nastaliq Urdu', sans-serif; ">{{latestStory['description'][:600]}}
                                     <br> 
                                     <a href="{{ url_for('getlocations', story_id=latestStory['id'], flag=0) }}" >View Full Story</a>
 
@@ -121,7 +316,7 @@
                             <div class="d-flex h-100">
                                 <div class="project-text w-100 my-auto text-center text-lg-right">
                                     <h4 class="text-white">Historically Significant</h4>
-                                    <p class="mb-0 text-white-50">{{historicStory['description'][:600]}}
+                                    <p class="mb-0 text-white-50" style="font-family: 'Noto Nastaliq Urdu', sans-serif; ">{{historicStory['description'][:600]}}
                                         <br> 
                                         <a href="{{ url_for('getlocations', story_id=historicStory['id'], flag=0) }}" >View Full Story</a>
     
@@ -135,7 +330,7 @@
             </div>
         </section>
        <!-- Signup-->
-       <section class="signup-section" >
+       <section class="signup-section" id="search" >
         <div class="container px-4 px-lg-5">
             <div class="row gx-4 gx-lg-5">
                 <div class="col-md-10 col-lg-8 mx-auto text-center">
@@ -155,18 +350,12 @@
                             <div class="col-auto"><button class="btn btn-primary " id="submitButton" type="submit">Search</button></div>
                         </div>
                     
-                        
                     </form>
                     
-                        
-                    
-                   
                 </div>
             </div>
         </div>
-        
-   
-    
+          </section>  
         <!-- Footer-->
         <!-- <footer class="footer bg-black small text-center text-white-50"><div class="container px-4 px-lg-5">Copyright &copy; Your Website 2022</div></footer> -->
         <!-- Bootstrap core JS-->
@@ -227,6 +416,45 @@ buttons.forEach(button => {
   })
 })
         </script>
+
+<script>
+    var x=document.getElementById('login');
+    var y=document.getElementById('register');
+    var z=document.getElementById('btnn');
+    function register()
+    {
+        x.style.left='-400px';
+        y.style.left='50px';
+        z.style.left='110px';
+    }
+    function login()
+    {
+        x.style.left='50px';
+        y.style.left='450px';
+        z.style.left='0px';
+    }
+</script>
+
+<script>
+// Get the modal
+var modal = document.getElementById('login-form');
+
+// Get the button that opens the modal
+var btn = document.getElementById("loginbtn");
+
+// When the user clicks on the button, open the modal
+btn.onclick = function() {
+  modal.style.display = "block";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+document.addEventListener('click', function(event) {
+  if (!event.target.closest('.navbar') &&!event.target.closest('.login-page')&& event.target != modal && modal.style.display == "block") {
+    modal.style.display = "none";
+  }
+});
+</script>
+
     </body>
     <script type="text/javascript" src="../static/js/script.js"></script>
 </html>

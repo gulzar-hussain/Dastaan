@@ -5025,7 +5025,8 @@ textarea.form-control-lg {
 
 
 .alert {
-  position: relative;
+  position:fixed;
+  margin-left: 500px;
   padding: 1rem 1rem;
   margin-bottom: 1rem;
   border: 1px solid transparent;
@@ -11836,4 +11837,5 @@ body {
 .carousel-button.next {
   right: 1rem;
 }
+
 
