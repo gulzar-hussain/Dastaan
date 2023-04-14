@@ -10,6 +10,7 @@
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="../static/js/script.js"></script>
         <!-- Google fonts-->
         <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
@@ -31,9 +32,7 @@
                         <li class="nav-item"><a class="nav-link" href="{{url_for('map')}}">Map</a></li>
                         {% if session.get('user_id') %}
                         <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}">Logout</a></li>
-                        {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{url_for('login')}}">login/signup</a></li>
+                        
                         {% endif %}
                     </ul>
                 </div>
@@ -162,7 +161,7 @@
                         url: "/autocomplete",
                         data: { term: request.term },
                         success: function(data) {
-                        response(data);
+                        response(data[0]);
                         }
                     });
                     },

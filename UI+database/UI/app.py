@@ -101,6 +101,7 @@ def get_location_coordinates(address):
         conn.close()
         return location_id
     else:
+        print("Failed in fetching location")
         return None
 
 
@@ -133,12 +134,53 @@ def get_nearby_stories(location):
 
 @app.route("/", methods=['GET', 'POST'])
 def dashboard():
+    # latest story uploaded
+    query1 ='''
+        SELECT s.id, s.description, s.uploaded_on, i.id AS image_id, i.file_name
+        FROM stories AS s
+        INNER JOIN images AS i ON s.id = i.story_id
+        WHERE s.is_verified = true
+        ORDER BY s.uploaded_on DESC
+        LIMIT 1;
+    '''
+    query2 ='''
+        SELECT s.id, s.description, s.year, i.id AS image_id, i.file_name
+        FROM stories AS s
+        INNER JOIN public.images AS i ON s.id = i.story_id
+        WHERE s.year = (SELECT MIN(year) FROM stories)
+        ORDER BY s.id ASC
+        LIMIT 1;
+    '''
+    query3 ='''
+        SELECT * from images LIMIT 10;
+    '''
+    try:
+        conn, cur = get_db_connection()
+        cur.execute(query1)
+        latest_story = cur.fetchone()
+        # print("latest story",latest_story)
+        
+        cur.execute(query2)
+        historic_story = cur.fetchone()
+        
+        cur.execute(query3)
+        images = cur.fetchall()
+        
+        conn.close()
+    except Exception as error:
+        print(error)
+        
     if request.method == 'POST':
         location = request.form['location_name']
         location = location.lower()
         print(location)
         try:
             conn, cur = get_db_connection()
+            # latest story uploaded
+            cur.execute('SELECT * FROM stories ORDER BY uploaded_on DESC LIMIT 1;')
+            latest_story = cur.fetchall()
+            print(latest_story)
+          
             query = 'SELECT * FROM stories WHERE is_verified = true AND location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
             values = (location,)
             cur.execute(query, values)
@@ -151,10 +193,11 @@ def dashboard():
             print(error)
         return render_template('searchlocations.html')
 
-    return render_template('index.html')
-@app.route("/addd")
-def addd():return render_template("addpersonalstory.html")
+    return render_template('index.html',latestStory = latest_story,historicStory = historic_story, images = images)
 
+@app.route("/test")
+def test():
+    return render_template("accountsettings.html")
 @app.route("/autocomplete")
 def autocomplete():
     term = request.args.get('term')
@@ -170,7 +213,7 @@ def autocomplete():
     cur.execute(query, values)
     results1 = [{'label': row[0]} for row in cur.fetchall()]
     
-    query = '''SELECT tag, SIMILARITY(tag, %s) AS score 
+    query = '''SELECT DISTINCT tag, SIMILARITY(tag, %s) AS score 
         FROM stories 
         WHERE tag ILIKE %s
         ORDER BY score DESC
@@ -201,6 +244,12 @@ def getlocations(story_id, flag):
         conn, cur = get_db_connection()
         cur.execute("SELECT * FROM stories WHERE id = %s", (story_id,))
         story = cur.fetchone()
+        contributor = story['contributor']
+        if not contributor: 
+            user_id = story['user_id']
+            cur.execute("SELECT username FROM users WHERE id = %s", (user_id,))
+            contributor = cur.fetchone()[0]
+            print(contributor)
         location_id = story['location_id']
         cur.execute("SELECT * FROM images WHERE story_id = %s", (story_id,))
         images = cur.fetchall()
@@ -211,7 +260,7 @@ def getlocations(story_id, flag):
         cur.close()
         conn.close()
 
-        return render_template('viewstory.html', story=story, images=images, Location_name=location, is_from_approve=flag)
+        return render_template('viewstory.html', story=story, images=images, Location_name=location, is_from_approve=flag,contributor = contributor)
 
     except Exception as error:
         print(error)
@@ -288,14 +337,15 @@ def addingStory():
         contributor = request.form['contributor']
 
         try:
+            
             location_id = get_location_coordinates(location)
             if location_id:
                 print("Location added successfully!")
             location = location.lower()
-            add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor) VALUES 
-            (%s,%s ,%s, %s,%s,%s) RETURNING id'''
+            add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on) VALUES 
+            (%s,%s ,%s, %s,%s,%s,%s) RETURNING id'''
             values = (tag, description, user_id,
-                      location_id, year, contributor)
+                      location_id, year, contributor,now)
             cur.execute(add_story, values)
             '''get id of the story that is just inserted to stories table above'''
             story_id = cur.fetchone()[0]
@@ -357,13 +407,22 @@ def register():
         user = cur.fetchone()
 
         if user:
-            flash('Email is already registered, please use another email.', 'danger')
-            return redirect(url_for('register'))
+            flash('Email is already registered, please use another email.', 'error')
+            return redirect(url_for('dashboard'))
 
         # Insert new user into database
-        cur.execute('INSERT INTO users (username, email, password, first_name, last_name, is_moderator, is_verified) VALUES (%s, %s, %s, %s, %s, %s, %s)',
-                    (username, email, password_hash, first_name, last_name, is_moderator, is_verified))
-        conn.commit()
+        else:
+            try:
+                cur.execute('INSERT INTO users (username, email, password, first_name, last_name, is_moderator, is_verified) VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                            (username, email, password_hash, first_name, last_name, is_moderator, is_verified))
+                conn.commit()
+                flash('Registration successful. Please check your email to verify your account.', 'success')
+                return redirect(url_for('dashboard'))
+            except psycopg2.Error as e:
+                    conn.rollback()
+                    flash('Registration Failed! :(', 'error')
+                    print("Error: ", e)
+        
 
         # Generate email verification token
         # token = ts.dumps(email, salt='email-verify')
@@ -378,10 +437,9 @@ def register():
         # # Send email
         # mail.send(message)
 
-        flash('Registration successful. Please check your email to verify your account.', 'success')
-        return redirect(url_for('login'))
+                    
 
-    return render_template('login.html')
+    return redirect(url_for('dashboard'))
 
 # User login route
 
@@ -413,20 +471,25 @@ def login():
                     session['username'] = user[1]
                     flash('Login successful.', 'success')
                     conn.close()
-
-                    return render_template("index.html")
+                    
+                    return redirect(url_for('dashboard'))
 
                 else:
-                    flash('Invalid email or password.', 'error')
-                    return redirect(url_for('login'))
+                    flash ('Invalid email or password.', 'error')
+                    return redirect(url_for('dashboard'))
+                    # return redirect(url_for('login'))
             else:
-                flash("Please verify your email first", 'error')
-                return redirect(url_for('login'))
+                flash ("Please verify your email first", 'error')
+                
+                return redirect(url_for('dashboard'))
+                # return redirect(url_for('login'))
         else:
             flash('Invalid email or password.', 'error')
-            return redirect(url_for('login'))
+            
+            return redirect(url_for('dashboard'))
+            # return redirect(url_for('login'))
     else:
-        return render_template('login.html')
+        return redirect(url_for('dashboard'))
 
 
 @app.route("/verify/<token>")
@@ -454,17 +517,11 @@ def verify_email(token):
 @app.route("/logout")
 def logout():
 
-    # session.pop("user_id", None)
-    # session.pop("is_moderator", None)
+    session.pop("user_id", None)
+    session.pop("is_moderator", None)
     session.clear()
-    # flash("Logout successful!", "success")
+    flash("Logout successful!", "success")
     return redirect(url_for("dashboard"))
-
-
-# @app.route("/get")
-# def get_bot_response():
-#     userText = request.args.get('msg')
-#     return str(bot.get_response(userText))
 
 
 def get_unapprovedStories(location):

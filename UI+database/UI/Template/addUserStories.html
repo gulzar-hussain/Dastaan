@@ -10,14 +10,23 @@
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA&libraries=places"></script>
-
-
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA&libraries=places&callback=initMap"></script>
+    
         <!-- Google fonts-->
         <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+        <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA&callback=initMap"></script> -->
+        
+        <style>
+            /* Set the size of the div element that contains the map */
+            #map {
+              height: 400px;
+              width: 100%;
+              display:none;
+            }
+          </style>
     </head>
     <body id="page-top">
         <!-- Navigation-->
@@ -37,16 +46,7 @@
                 </div>
             </div>
         </nav>
-        <!-- Masthead-->
-        
-        
-        <!-- About-->
-        
-        <!-- Projects-->
-        
-                <!-- Project Two Row-->
-               
-        <!-- Signup-->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <section class="signup-section" id="signup">
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5">
@@ -75,26 +75,41 @@
                 {% endwith %}
                         <form class="form-signup" name = "addingStory" action="/addingStory" method = "POST" data-sb-form-api-token="API_TOKEN" enctype="multipart/form-data">
                             <!-- Email address input-->
-                            <div id="map"></div>
+                            
 
                             <div class="row input-group-newsletter">
                                 <div class="row mb-3">
                                     <label for="location_name" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Location</label>
-                                    <div class="col-sm-9">
+                                    <div class="col-sm-10">
+                                        <div class="input-group">
                                         <input class="form-control" name="location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." autocomplete="off" />
-                                    </div>    
-                                    <div class="col-sm-1">
-                                        <button class="btn btn-outline-secondary" type="button" id="btn-current-location"><i class="fas fa-map-marker-alt"></i></button>
+                
+                                        <button class="btn" style="background-color: #fff;"  type="button" id="btn-current-location" ><i class="fas fa-map-marker-alt"></i></button>
+                                        </div>
                                     </div>
                                     
-                                </div>                           
-                              
+                                </div>      
+                                <div class="row mb-3"><div class="col-md-10" id="map" ></div> </div>                 
                                 <div class="row mb-3">
-                                  <label for="timeline" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Timeline</label>
-                                  <div class="col-sm-10">
-                                    <input class="form-control" name="timeline" id="timeline" type="text" placeholder="Timeline of your story..." value="" aria-label="Timeline of your story..." />
+                                    <label for="timeline" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Timeline</label>
+                                    <div class="col-sm-10">
+                                      <div class="input-group">
+                                        <input class="form-control" name="timeline" id="timeline" type="text" placeholder="Select year" value="" aria-label="timeline" />
+                                        <button class="btn" style="background-color: #fff;" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-calendar-alt"></i></button>
+                                        <ul class="dropdown-menu dropdown-menu-end" style="height: 167px; width: 544px; overflow-y: scroll;">
+                                          <script>
+                                            const currentYear = new Date().getFullYear();
+                                            const yearOptions = [];
+                                            for (let i = currentYear; i >= 1900; i--) {
+                                              yearOptions.push(`<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('timeline').value = '${i}';">${i}</a></li>`);
+                                            }
+                                            document.write(yearOptions.join(''));
+                                          </script>
+                                        </ul>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
+                                  
                               
                                 <div class="row mb-3">
                                   <label for="story" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Story</label>
@@ -102,14 +117,25 @@
                                     <textarea class="form-control" name="story" id="story" placeholder="START WRITING YOUR STORY..."></textarea>
                                   </div>
                                 </div>
-                              
+                                                               
                                 <div class="row mb-3">
-                                  <label for="tag" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Tag</label>
-                                  <div class="col-sm-10">
-                                    <input class="form-control" name="tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag" />
+                                    <label for="tag" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Tag</label>
+                                    <div class="col-sm-10">
+                                      <div class="input-group">
+                                        <input class="form-control" name="tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag" />
+                                        <button class="btn dropdown-toggle" style="background-color: #fff;" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                        <ul class="dropdown-menu dropdown-menu-end" style="height: 100px; width: 544px;overflow-y: scroll;">
+                                          <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('tag').value = 'Historical';">Historical</a></li>
+                                          <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('tag').value = 'Political';">Political</a></li>
+                                          <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('tag').value = 'Architectural';">Architectural</a></li>
+                                          <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('tag').value = 'Religious';">Religious</a></li>
+                                          <!-- Add more tags as needed -->
+                                        </ul>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              
+                                  
+                                  
                                 <div class="row mb-3">
                                   <label for="contributor" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Contributor</label>
                                   <div class="col-sm-10">
@@ -127,14 +153,10 @@
                                   </div>
                                 </div>
                               </div>
-                              
-                        
-                            
+                       
                         </form>
                     </div>
             
-                      
-                
                 </div>
             </div>
         </section>
@@ -181,13 +203,16 @@
                 });
               </script>
         
-     <!-- jQuery UI CSS -->
-     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+      <!-- jQuery UI CSS -->
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
-     <!-- jQuery and jQuery UI JavaScript -->
-     <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
-     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+      <!-- jQuery and jQuery UI JavaScript -->
+      <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
      <script type="text/javascript" src="../static/js/script.js"></script>
+     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
+     <!-- <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3620.478110646292!2d67.03085311440064!3d24.84751518406003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33dd84b5b4d7b%3A0x37de022366f8096f!2sFrere%20Hall!5e0!3m2!1sen!2s!4v1668078843170!5m2!1sen!2s" width="3600" height="1450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
 
      <script>
         
@@ -214,11 +239,34 @@
 
 <script>
     function initAutocomplete() {
+        console.log('google');
+        
         var input = document.getElementById('location_name');
         var autocomplete = new google.maps.places.Autocomplete(input);
     }
-    
     google.maps.event.addDomListener(window, 'load', initAutocomplete);
+    
+    function autocompleteDB(){
+        $("#location_name").autocomplete({
+                    source: function(request, response) {
+                    $.ajax({
+                        url: "/autocomplete",
+                        data: { term: request.term },
+                        success: function(data) {
+                        response(data[0]);
+                        }
+                    });
+                    },
+                    select: function(event, ui) {
+                        event.preventDefault();
+                        $("#location_name").val(ui.item.label);
+                    }
+                });
+    }
+    
 </script>
+
+
+
     </body>
 </html>

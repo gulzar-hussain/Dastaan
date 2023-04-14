@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+    <script type="text/javascript" src="../static/js/script.js"></script>
     <title>Document</title>
 </head>
 <body>
@@ -187,4 +189,40 @@ Delete account
 </div>
 </div> 
 </body>
+<script>
+    // Wait for the document to load
+document.addEventListener('DOMContentLoaded', function() {
+  // Get all the list items with the 'list-group-item-action' class
+  const listItems = document.querySelectorAll('.list-group-item-action');
+  
+  // Loop through the list items and add an event listener to each of them
+  listItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      // Get the href attribute of the clicked item
+      const href = this.getAttribute('href');
+      
+      // Remove the active class from all the list items
+      listItems.forEach(function(item) {
+        item.classList.remove('active');
+      });
+      
+      // Add the active class to the clicked item
+      this.classList.add('active');
+      
+      // Hide all the tab panes
+      const tabPanes = document.querySelectorAll('.tab-pane');
+      tabPanes.forEach(function(pane) {
+        pane.classList.remove('show');
+        pane.classList.remove('active');
+      });
+      
+      // Show the corresponding tab pane
+      const tabPane = document.querySelector(href);
+      tabPane.classList.add('show');
+      tabPane.classList.add('active');
+    });
+  });
+});
+
+</script>
 </html>
