@@ -10,7 +10,7 @@
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
-        <script type="text/javascript" src="../static/js/script.js"></script>
+        
         <!-- Google fonts-->
         <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
@@ -27,9 +27,38 @@
             text-align: center;
             color: white;
             font-family: 'Noto Nastaliq Urdu', sans-serif; 
-            
-            
-          }</style>
+        }
+        .title {
+            font-size: 24px;
+            line-height: 2.5;
+            margin: 30px auto;
+            text-align: center;
+            color: white;
+            font-family: 'Noto Nastaliq Urdu', sans-serif; 
+        }
+            .location {
+            position: absolute;
+            bottom: 0;
+            left: 95%;
+            width:60px;
+            height: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.459);
+            padding: 5px 5px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #64a19d;
+            cursor: pointer;
+        }
+        .location:hover {
+            color: #fff;
+            background-color: #64a19d;
+            border-color: #64a19d;
+            width:70px;
+        }
+</style>
     </head>
     <body id="page-top">
         <!-- Navigation-->
@@ -49,7 +78,10 @@
                         <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li>
                         
                         {% endif %}
-                        <button onclick="window.history.back();" class="btn btn-primary">Go Back</button>
+                        <!-- <button onclick="window.history.back();" class="btn btn-primary" style="background-color: transparent; width: 10px; height: 5px;margin-top: 15px;color: #64a19d;">&#10094;</button> -->
+                        <a onclick="window.history.back();">
+                            <div class="location" >&#10094;</div>
+                          </a>
                     </ul>
                 </div>
             </div>
@@ -90,16 +122,20 @@
                                             <button type="submit" class="btn btn-success">Approve</button>
                                         </form>
                                         {% endif %}
+
                                         
                                     </p>
+                                    <p>{% if session.get('user_id') == story.user_id %}
+                                        <button id="edit-btn" class="btn btn-primary">Edit</button>
+                                        {% endif %}</p>
                                   
                                 </div>
                             </div>
                         </div>
                         
                         </div>
-                        <div  class="container">
-                            
+                        <div  class="container" id="container">
+                            <div class ="title">{{story['title']}}</div>
                             <div class="description">
                               {{ story['description'] }}
                             </div>
@@ -123,6 +159,7 @@
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+        <script type="text/javascript" src="../static/js/script.js"></script>
         <script>
             const buttons = document.querySelectorAll("[data-carousel-button]")
 
@@ -143,6 +180,52 @@
             })
             })
         </script>
+        <script>
+            const editBtn = document.getElementById("edit-btn");
+            editBtn.addEventListener("click", () => {
+              // Disable the edit button
+              editBtn.disabled = true;
+      
+              // Add a form to the page to edit the story
+              const form = document.createElement("form");
+              const titleInput = document.createElement("input");
+              const contentInput = document.createElement("textarea");
+              const submitBtn = document.createElement("button");
+      
+              titleInput.value = "{{ story['title'] }}";
+              contentInput.value = "{{ story['description'] }}";
+              submitBtn.textContent = "Update";
+      
+              form.appendChild(titleInput);
+              form.appendChild(contentInput);
+              form.appendChild(submitBtn);
+      
+              // Replace the story content with the edit form
+              const container = document.getElementById("container");
+              container.replaceChild(form, container.lastElementChild);
+      
+              // Submit the form to update the story
+              form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+      
+                const data = {
+                  title: titleInput.value,
+                  content: contentInput.value,
+                };
+      
+                const response = await fetch(`/update_story/${story.id}`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(data),
+                });
+      
+                if (response.ok) {
+                  // Reload the page to show the updated story
+                  window.location.reload();
+                }
+              });
+            });
+          </script>
        
     </body>
     

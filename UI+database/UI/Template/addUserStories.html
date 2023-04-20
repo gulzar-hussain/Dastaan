@@ -82,7 +82,7 @@
                                     <label for="location_name" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Location</label>
                                     <div class="col-sm-10">
                                         <div class="input-group">
-                                        <input class="form-control" name="location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." autocomplete="off" />
+                                        <input class="form-control" name="location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." autocomplete="off" required/>
                 
                                         <button class="btn" style="background-color: #fff;"  type="button" id="btn-current-location" ><i class="fas fa-map-marker-alt"></i></button>
                                         </div>
@@ -94,7 +94,7 @@
                                     <label for="timeline" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Timeline</label>
                                     <div class="col-sm-10">
                                       <div class="input-group">
-                                        <input class="form-control" name="timeline" id="timeline" type="text" placeholder="Select year" value="" aria-label="timeline" />
+                                        <input class="form-control" name="timeline" id="timeline" type="number" min="1900" max="2099" pattern="[0-9]*" placeholder="Select Year" value="" aria-label="timeline" required maxlength="4"/>
                                         <button class="btn" style="background-color: #fff;" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-calendar-alt"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-end" style="height: 167px; width: 544px; overflow-y: scroll;">
                                           <script>
@@ -114,7 +114,7 @@
                                 <div class="row mb-3">
                                   <label for="story" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Story</label>
                                   <div class="col-sm-10">
-                                    <textarea class="form-control" name="story" id="story" placeholder="START WRITING YOUR STORY..."></textarea>
+                                    <textarea class="form-control" name="story" id="story" placeholder="START WRITING YOUR STORY..." required style="height: 400px;"></textarea>
                                   </div>
                                 </div>
                                                                
@@ -122,7 +122,7 @@
                                     <label for="tag" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Tag</label>
                                     <div class="col-sm-10">
                                       <div class="input-group">
-                                        <input class="form-control" name="tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag" />
+                                        <input class="form-control" name="tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag"  required/>
                                         <button class="btn dropdown-toggle" style="background-color: #fff;" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
                                         <ul class="dropdown-menu dropdown-menu-end" style="height: 100px; width: 544px;overflow-y: scroll;">
                                           <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('tag').value = 'Historical';">Historical</a></li>
@@ -146,7 +146,7 @@
                                 <div class="row mb-3">
                                   <label class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Images</label>
                                   <div class="col-sm-7">
-                                    <input type="file" name="files[]" id="fileInput" class="form-control" multiple>
+                                    <input type="file" name="files[]" id="fileInput" class="form-control" multiple required>
                                   </div>
                                   <div class="col-sm-3">
                                     <button class="btn btn-primary" id="submitButton" type="submit">Upload</button>
