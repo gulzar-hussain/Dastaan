@@ -89,17 +89,24 @@ def get_location_id(address):
 def get_location_coordinates(address):
     geolocator = Nominatim(user_agent="dastaan")
     location = geolocator.geocode(address)
-    print(location)
+    # place_name = location.raw['display_name'].split(',')[0]
+    # place_name = str(place_name)
+    # if 'Karachi' not in place_name: place_name+=+', Karachi'
+    # print(place_name)
+    # print('lat',location.latitude,' ','long',location.longitude)
+    
     if location is not None:
         conn, cur = get_db_connection()
-        cur.execute("INSERT INTO locations (longitude, latitude,location, location_data) VALUES (%s, %s,%s, ST_SetSRID(ST_GeomFromText('POINT(' || %s || ' ' || %s || ')'), 4326)) ON CONFLICT DO NOTHING RETURNING id",
-                    (location.longitude, location.latitude, address, location.longitude, location.latitude))
-        address = address.lower()
+        cur.execute("INSERT INTO locations (longitude, latitude,location, location_data) VALUES (%s, %s,%s, ST_SetSRID(ST_GeomFromText('POINT(' || %s || ' ' || %s || ')'), 4326)) ON CONFLICT DO NOTHING",
+                    (location.longitude, location.latitude, address.title(), location.longitude, location.latitude))
+        conn.commit()
+        
+        # getting location id
         cur.execute("SELECT id from locations WHERE longitude ::numeric = %s AND latitude ::numeric = %s",
                     (location.longitude, location.latitude))
         location_id = cur.fetchone()[0]
         cur.close()
-        conn.commit()
+        
         conn.close()
         return location_id
     else:
@@ -108,30 +115,44 @@ def get_location_coordinates(address):
 
 
 def get_nearby_stories(location):
-    geolocator = Nominatim(user_agent="dastaan")
-    location = geolocator.geocode(location)
-    if location is not None:
-        conn, cur = get_db_connection()
-        long = location.longitude
-        lat = location.latitude
-        query = '''
-    SELECT * FROM stories WHERE is_verified = true AND location_id IN (
-    SELECT id
-    FROM locations WHERE ST_DWithin(
-      location_data, 
-      ST_SetSRID(ST_MakePoint(%s, %s), 4326), 
-      10000
-      )) AND location_id != (
-    SELECT id
-    FROM locations WHERE location_data = ST_SetSRID(ST_MakePoint(%s, %s), 4326)
-    ) ORDER BY year DESC;'''
-        values = (long, lat, long, lat)
-        cur.execute(query, values)
-        nearby_stories = cur.fetchall()
-
-        cur.close()
-        conn.close()
-        return nearby_stories
+    print('getting nearby stories....')
+    conn, cur = get_db_connection()
+    
+    query = '''
+    WITH user_location AS (
+    SELECT location_data
+    FROM locations
+    WHERE location = %s
+    )SELECT s.*, l.location, p.file_name as image_file_name
+    FROM stories s
+    JOIN locations l ON s.location_id = l.id
+    LEFT JOIN (
+        SELECT story_id, file_name
+        FROM images p1
+        WHERE uploaded_on  = (
+            SELECT MAX(uploaded_on)
+            FROM images p2
+            WHERE p1.story_id = p2.story_id
+        )
+    ) p ON s.id = p.story_id
+    WHERE s.is_verified = true 
+    AND s.location_id IN (
+        SELECT id
+        FROM locations 
+        WHERE ST_DWithin(location_data, (SELECT location_data FROM user_location), 10000)
+    ) AND s.location_id != (
+        SELECT id
+        FROM locations 
+        WHERE location_data = (SELECT location_data FROM user_location)
+    )
+    GROUP BY s.id, l.location, p.file_name
+    ORDER BY s.year DESC;'''
+    values = (location,)
+    cur.execute(query, values)
+    nearby_stories = cur.fetchall()
+    cur.close()
+    conn.close()
+    return nearby_stories
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -148,7 +169,7 @@ def dashboard():
     query2 ='''
         SELECT s.id, s.description, s.year, i.id AS image_id, i.file_name
         FROM stories AS s
-        INNER JOIN public.images AS i ON s.id = i.story_id
+        INNER JOIN images AS i ON s.id = i.story_id
         WHERE s.year = (SELECT MIN(year) FROM stories)
         ORDER BY s.id ASC
         LIMIT 1;
@@ -174,7 +195,6 @@ def dashboard():
         
     if request.method == 'POST':
         location = request.form['location_name']
-        location = location.lower()
         print(location)
         try:
             conn, cur = get_db_connection()
@@ -183,8 +203,22 @@ def dashboard():
             latest_story = cur.fetchall()
             print(latest_story)
           
-            query = 'SELECT * FROM stories WHERE is_verified = true AND location_id = (SELECT id FROM locations WHERE LOWER(location) = %s)'
-            values = (location,)
+            query = '''
+                    SELECT 
+            stories.*, 
+            locations.location, 
+            (
+                SELECT file_name 
+                FROM images 
+                WHERE images.story_id = stories.id 
+                ORDER BY id ASC 
+                LIMIT 1
+            ) AS image_file_name
+            FROM stories
+            JOIN locations ON stories.location_id = locations.id
+            WHERE stories.is_verified = true
+            AND stories.location_id = %s'''
+            values = (get_location_id(location),)
             cur.execute(query, values)
             stories = cur.fetchall()
             print(stories)
@@ -295,12 +329,26 @@ def approved(story_id):
 def searchlocations():
     if request.method == 'POST':
         location = request.form['location_name']
-        location = location.lower()
         print(location)
         try:
             conn, cur = get_db_connection()
-            query = 'SELECT * FROM stories WHERE is_verified = true AND location_id = %s'
-            values = (get_location_id(location),)
+            query = '''
+                                SELECT s.*, l.location, i.file_name AS image_file_name
+            FROM stories s
+            JOIN locations l ON s.location_id = l.id
+            LEFT JOIN (
+                SELECT story_id, file_name
+                FROM images i1
+                WHERE uploaded_on = (
+                    SELECT MAX(uploaded_on)
+                    FROM images i2
+                    WHERE i1.story_id = i2.story_id
+                )
+            ) i ON s.id = i.story_id
+            WHERE s.is_verified = true 
+            AND l.location = %s
+            ORDER BY s.year DESC;'''
+            values = (location,)
             cur.execute(query, values)
             stories = cur.fetchall()
             if len(stories) == 0:
@@ -329,7 +377,7 @@ def addingStory():
         user_id = session['user_id']
     except:
         flash('You must be logged in to upload a story', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('dasboard'))
 
     if request.method == 'POST':
         year = request.form['timeline']
@@ -343,41 +391,44 @@ def addingStory():
             location_id = get_location_coordinates(location)
             if location_id:
                 print("Location added successfully!")
-            location = location.lower()
-            add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on) VALUES 
-            (%s,%s ,%s, %s,%s,%s,%s) RETURNING id'''
-            values = (tag, description, user_id,
-                      location_id, year, contributor,now)
-            cur.execute(add_story, values)
-            '''get id of the story that is just inserted to stories table above'''
-            story_id = cur.fetchone()[0]
-            conn.commit()
+                add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on) VALUES 
+                (%s,%s ,%s, %s,%s,%s,%s) RETURNING id'''
+                values = (tag, description, user_id,
+                        location_id, year, contributor,now)
+                cur.execute(add_story, values)
+                '''get id of the story that is just inserted to stories table above'''
+                story_id = cur.fetchone()[0]
+                           
+                conn.commit()
+                files = request.files.getlist('files[]')
+                # print(files)
+                if files and story_id:
+                    try:
+                        for file in files:
+
+                            if file and allowed_file(file.filename):
+                                filename = secure_filename(file.filename)
+                                filepath = os.path.join(
+                                    app.config['UPLOAD_FOLDER'], filename)
+                                file.save(filepath)
+                                cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, %s,%s)", [
+                                            filename, now, story_id])
+                                conn.commit()
+                                flash('Story uploaded successfully! :)', 'success')
+                    except psycopg2.Error as e:
+                        conn.rollback()
+                        flash('Story upload failed! :(', 'error')
+                        print("Error: ", e)
 
         except psycopg2.Error as e:
             conn.rollback()
             flash('Story upload failed! :(', 'error')
             print("Error: ", e)
+            return render_template('addUserStories.html')
         # image upload
 
-        files = request.files.getlist('files[]')
-        # print(files)
-        if files:
-            try:
-                for file in files:
-
-                    if file and allowed_file(file.filename):
-                        filename = secure_filename(file.filename)
-                        filepath = os.path.join(
-                            app.config['UPLOAD_FOLDER'], filename)
-                        file.save(filepath)
-                        cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, %s,%s)", [
-                                    filename, now, story_id])
-                        conn.commit()
-                        flash('Story uploaded successfully! :)', 'success')
-            except psycopg2.Error as e:
-                conn.rollback()
-                flash('Story upload failed! :(', 'error')
-                print("Error: ", e)
+        
+                
         cur.close()
         conn.close()
 
@@ -406,12 +457,16 @@ def register():
 
         # Check if email is already registered
         cur.execute('SELECT * FROM users WHERE email = %s', (email,))
+        em = cur.fetchone()
+        cur.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cur.fetchone()
 
-        if user:
+        if em:
             flash('Email is already registered, please use another email.', 'error')
             return redirect(url_for('dashboard'))
-
+        elif user:
+            flash('username already taken.', 'error')
+            return redirect(url_for('dashboard'))
         # Insert new user into database
         else:
             try:

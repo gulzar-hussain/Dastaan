@@ -39,14 +39,6 @@
             </div>
         </nav>
         <!-- Masthead-->
-        
-        
-        <!-- About-->
-        
-        <!-- Projects-->
-        
-                <!-- Project Two Row-->
-               
         <!-- Signup-->
         <section class="signup-section" id="signup">
             <div class="container px-4 px-lg-5">
@@ -74,52 +66,48 @@
 
 
 <!-- Create the table -->
-<table class="styled-table" id="tableId">
-    <!-- {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <ul class="alert">
-                            {% for category, message in messages %}
-                                {% if category == 'error' %}
-                                    <li class="alert-danger">{{ message }}</li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% endwith %} -->
-    <tbody>
-        {% for story in data %}
-        <tr >
-            <td>{{ story.tag.title() }}</td>
-            <td>{{ story.description[:50] }}</td>
-            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
-                <button type="submit" class="btn btn-success">View</button>
-            </form></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <table class="styled-table" id="tableId">
+            <!-- {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <ul class="alert">
+                                    {% for category, message in messages %}
+                                        {% if category == 'error' %}
+                                            <li class="alert-danger">{{ message }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% endwith %} -->
+            <tbody>
+                {% for story in data %}
+                <tr >
+                    <td>{{ story.tag.title() }}</td>
+                    <td>{{ story.description[:50] }}</td>
+                    <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
+                        <button type="submit" class="btn btn-success">View</button>
+                    </form></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-<h2 class="text-white mb-5">All unapproved Stories</h2>
-<table class="styled-table">
-    <tbody>
-        {% for story in unapprovedStories %}
-        <tr >
-            <td>{{ story.tag.title() }}</td>
-            <td>{{ story.description[:50] }}</td>
-            <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
-                <button type="submit" class="btn btn-success">View</button>
-            </form></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-                    
-                      
-                
-                </div>
-            </div>
-        </section>
+        <h2 class="text-white mb-5">All unapproved Stories</h2>
+        <table class="styled-table">
+            <tbody>
+                {% for story in unapprovedStories %}
+                <tr >
+                    <td>{{ story.tag.title() }}</td>
+                    <td>{{ story.description[:50] }}</td>
+                    <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
+                        <button type="submit" class="btn btn-success">View</button>
+                    </form></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>    
+        </div>
+    </div>
+</section>
        
         <!-- Footer-->
         
