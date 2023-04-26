@@ -2,9 +2,6 @@ from flask import redirect
 from flask_cors import CORS
 import re
 import requests
-import dashboard
-import location
-import personalstory
 import openai
 from flask import Flask, abort, jsonify, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -30,7 +27,6 @@ def get_db_connection():
         user='postgres',
         password='google',
         # host='localhost',
-        host = "10.20.6.223",
         host = "10.20.6.185",
         port='5432'
     )
