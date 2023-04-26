@@ -31,6 +31,7 @@ def get_db_connection():
         password='google',
         # host='localhost',
         host = "10.20.6.223",
+        host = "10.20.6.185",
         port='5432'
     )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
