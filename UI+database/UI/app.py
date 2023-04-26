@@ -388,10 +388,16 @@ def addingStory():
             location_id = get_location_coordinates(location)
             if location_id:
                 print("Location added successfully!")
-                add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on,title) VALUES 
-                (%s,%s ,%s, %s,%s,%s,%s,%s) RETURNING id'''
-                values = (tag, description, user_id,
+                if year:
+                    add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on,title) VALUES 
+                    (%s,%s ,%s, %s,%s,%s,%s,%s) RETURNING id'''
+                    values = (tag, description, user_id,
                         location_id, year, contributor,now,title)
+                else:
+                    add_story = '''INSERT INTO stories (tag,description,user_id,location_id,contributor,uploaded_on,title) VALUES 
+                    (%s,%s ,%s, %s,%s,%s,%s) RETURNING id'''
+                    values = (tag, description, user_id,
+                        location_id, contributor,now,title)
                 cur.execute(add_story, values)
                 '''get id of the story that is just inserted to stories table above'''
                 story_id = cur.fetchone()[0]
