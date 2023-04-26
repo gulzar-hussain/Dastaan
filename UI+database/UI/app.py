@@ -385,16 +385,17 @@ def addingStory():
         location = request.form['location_name']
         description = request.form['story']
         contributor = request.form['contributor']
+        title = request.form['title']
 
         try:
             
             location_id = get_location_coordinates(location)
             if location_id:
                 print("Location added successfully!")
-                add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on) VALUES 
-                (%s,%s ,%s, %s,%s,%s,%s) RETURNING id'''
+                add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on,title) VALUES 
+                (%s,%s ,%s, %s,%s,%s,%s,%s) RETURNING id'''
                 values = (tag, description, user_id,
-                        location_id, year, contributor,now)
+                        location_id, year, contributor,now,title)
                 cur.execute(add_story, values)
                 '''get id of the story that is just inserted to stories table above'''
                 story_id = cur.fetchone()[0]
@@ -643,7 +644,7 @@ def generate_prompt(animal):
     )
 
 @app.route('/mapcoordinates', methods=('GET','POST'))
-def receive_coordinates():
+def receive_cgetoordinates():
     data = request.get_json()
     lat = data['lat']
     lng = data['lng']
@@ -651,6 +652,62 @@ def receive_coordinates():
     
     return jsonify({'message': 'Coordinates received'})
     # return redirect(url_for("dashboard"))   
-     
+@app.route('/userstories', methods=('GET','POST')) 
+def user_stories():
+    user_id = session['user_id']   
+    
+    # all approved stories
+    query1 = '''
+        SELECT s.*, l.location, i.file_name AS image_file_name
+        FROM stories s
+        JOIN locations l ON s.location_id = l.id
+        JOIN users u ON s.user_id = u.id
+        LEFT JOIN (
+            SELECT story_id, file_name
+            FROM images i1
+            WHERE uploaded_on = (
+                SELECT MAX(uploaded_on)
+                FROM images i2
+                WHERE i1.story_id = i2.story_id
+            )
+        ) i ON s.id = i.story_id
+        WHERE s.is_verified = true 
+        AND u.id = %s
+        ORDER BY s.year DESC;
+    '''
+    # all unapproved stories
+    query2 = '''
+        SELECT s.*, l.location, i.file_name AS image_file_name
+        FROM stories s
+        JOIN locations l ON s.location_id = l.id
+        JOIN users u ON s.user_id = u.id
+        LEFT JOIN (
+            SELECT story_id, file_name
+            FROM images i1
+            WHERE uploaded_on = (
+                SELECT MAX(uploaded_on)
+                FROM images i2
+                WHERE i1.story_id = i2.story_id
+            )
+        ) i ON s.id = i.story_id
+        WHERE s.is_verified = false 
+        AND u.id = %s
+        ORDER BY s.year DESC;
+    '''
+    value = (user_id,)
+    conn, cur = get_db_connection()
+    try:
+        cur.execute(query1,value)
+        
+        approvedStories = cur.fetchall()  
+        cur.execute(query2,value) 
+        unapprovedStories = cur.fetchall()  
+        cur.close()
+        conn.close()
+        return render_template("userStories.html", approved=approvedStories,unapproved = unapprovedStories)
+    except psycopg2.Error as e:
+        conn.rollback()
+        print("Error: ", e)
+    
 if __name__ == "__main__":
     app.run(host='localhost', debug=True)
