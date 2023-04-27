@@ -17,34 +17,26 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const apiOptions = {
-  apiKey: "AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA",
+  apiKey: "AIzaSyCKzhctx7LyYpC0R5RUaoNMm_UOHuELP4c",
   version: "beta",
   libraries: ["places"],
 };
-
+// Old:AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA
+// New: AIzaSyCKzhctx7LyYpC0R5RUaoNMm_UOHuELP4c
 let mapOptions = {
   tilt: 0,
   heading: 0,
   zoom: 18,
   center: { lat: 0, lng: 0 },
-  mapId: "2f95a159e490bcec",
+  mapId: "4a9b9222ea5d497a",
 };
+// Old:2f95a159e490bcec
+// New: 4a9b9222ea5d497a
 
 async function initMap() {
   const mapDiv = document.getElementById("map");
   const apiLoader = new Loader(apiOptions);
   await apiLoader.load();
-  const searchBox = new google.maps.places.Autocomplete(
-    document.getElementById("pac-input")
-  );
-  searchBox.addListener("place_changed", () => {
-    const place = searchBox.getPlace();
-    if (place.geometry) {
-      map.setCenter(place.geometry.location);
-    } else {
-      console.error("Error: No location found for the selected place.");
-    }
-  });
 
   return new google.maps.Map(mapDiv, mapOptions);
 }
@@ -95,9 +87,11 @@ function initWebGLOverlayView(map) {
         // rotate the map 360 degrees
         if (mapOptions.tilt < 67.5) {
           mapOptions.tilt += 0.5;
-        } else if (mapOptions.heading <= 360) {
-          mapOptions.heading += 0.2;
-        } else {
+        }
+        // else if (mapOptions.heading <= 360) {
+        //   mapOptions.heading += 0.2;
+        // }
+        else {
           renderer.setAnimationLoop(null);
         }
       });
@@ -129,15 +123,29 @@ function iwClick(lat, lng) {
     body: JSON.stringify({ lat: lat, lng: lng }),
     headers: { "Content-Type": "application/json" },
   })
-    .then((response) =>
-      window.location.replace("http://127.0.0.1:5000/")
-    )
+    .then((response) => window.location.replace("http://127.0.0.1:5000/"))
     .catch((error) => console.error(error));
 }
 
 (async () => {
   const map = await initMap();
   initWebGLOverlayView(map);
+  const karachiBounds = new google.maps.LatLngBounds(
+    new google.maps.LatLng(24.78229, 66.956602),
+    new google.maps.LatLng(25.157623, 67.328409)
+  );
+  const searchBox = new google.maps.places.Autocomplete(
+    document.getElementById("pac-input"),
+    { bounds: karachiBounds }
+  );
+  searchBox.addListener("place_changed", () => {
+    const place = searchBox.getPlace();
+    if (place.geometry) {
+      map.setCenter(place.geometry.location);
+    } else {
+      console.error("Error: No location found for the selected place.");
+    }
+  });
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       function (position) {
