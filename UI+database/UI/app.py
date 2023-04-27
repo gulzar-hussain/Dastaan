@@ -18,7 +18,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 def get_db_connection():
 
     conn = None
@@ -26,8 +25,8 @@ def get_db_connection():
         database='mydastaan',
         user='postgres',
         password='google',
-        # host='localhost',
-        host = "10.20.6.185",
+        host= 'localhost',
+        # host = "10.20.6.185",
         port='5432'
     )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -646,14 +645,80 @@ def generate_prompt(animal):
     )
 
 @app.route('/mapcoordinates', methods=('GET','POST'))
-def receive_cgetoordinates():
+def receive_coordinates():
+    global lat, lng
+    print('receive_coordinates')
     data = request.get_json()
     lat = data['lat']
     lng = data['lng']
-    # Do something with the coordinates
+    session['lat'] = lat
+    session['lng'] = lng
+    
+    print(lat, lng)
+        # Do something with the coordinates
     
     return jsonify({'message': 'Coordinates received'})
-    # return redirect(url_for("dashboard"))   
+    # return redirect(url_for("dashboard"))  
+    
+@app.route('/storiesviamap')
+def search_locations():
+    global lat, lng
+    print('search_location')
+    # print(lat, lng)
+    # Do something with the coordinates
+    conn, cur = get_db_connection()
+    query1 = '''
+        SELECT s.*, l.location, p.file_name as image_file_name
+FROM stories s
+JOIN locations l ON s.location_id = l.id
+JOIN (
+    SELECT story_id, file_name
+    FROM images p1
+    WHERE uploaded_on = (
+        SELECT MAX(uploaded_on)
+        FROM images p2
+        WHERE p1.story_id = p2.story_id
+    )
+) p ON s.id = p.story_id
+WHERE s.is_verified = true 
+AND ST_Distance(l.location_data::geography, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) <= 100
+GROUP BY s.id, l.location, p.file_name
+ORDER BY s.year DESC;
+
+    '''
+    query2 = '''
+        SELECT s.*, l.location, p.file_name as image_file_name
+FROM stories s
+JOIN locations l ON s.location_id = l.id
+JOIN (
+    SELECT story_id, file_name
+    FROM images p1
+    WHERE uploaded_on = (
+        SELECT MAX(uploaded_on)
+        FROM images p2
+        WHERE p1.story_id = p2.story_id
+    )
+) p ON s.id = p.story_id
+WHERE s.is_verified = true 
+AND ST_Distance(l.location_data::geography, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) BETWEEN 100 AND 10000
+GROUP BY s.id, l.location, p.file_name
+ORDER BY s.year DESC;
+
+
+    '''
+    values = (lng,lat)
+    cur.execute(query1,values)
+    stories = cur.fetchall()
+    cur.execute(query2,values)
+    nearbyStories = cur.fetchall()
+    print(lng,lat)
+    if stories:
+        location = stories[0]['location']
+    location = ''
+    conn.close()
+        
+    return render_template('searchlocations.html', data=stories, nearbyStories=nearbyStories, searchtext=location)
+ 
 @app.route('/userstories', methods=('GET','POST')) 
 def user_stories():
     user_id = session['user_id']   
@@ -712,4 +777,4 @@ def user_stories():
         print("Error: ", e)
     
 if __name__ == "__main__":
-    app.run(host='5000', debug=True)
+    app.run(host='localhost', debug=True)

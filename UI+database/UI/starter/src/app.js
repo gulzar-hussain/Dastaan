@@ -123,7 +123,8 @@ function iwClick(lat, lng) {
     body: JSON.stringify({ lat: lat, lng: lng }),
     headers: { "Content-Type": "application/json" },
   })
-    .then((response) => window.location.replace("http://127.0.0.1:5000/"))
+  .then((response) => window.location.replace("http://127.0.0.1:5000/storiesviamap"))
+
     .catch((error) => console.error(error));
 }
 
