@@ -123,7 +123,9 @@ function iwClick(lat, lng) {
     body: JSON.stringify({ lat: lat, lng: lng }),
     headers: { "Content-Type": "application/json" },
   })
-  .then((response) => window.location.replace("http://127.0.0.1:5000/storiesviamap"))
+    .then((response) =>
+      window.location.replace("http://127.0.0.1:5000/storiesviamap")
+    )
 
     .catch((error) => console.error(error));
 }
@@ -174,10 +176,13 @@ function iwClick(lat, lng) {
     let buttonName = "Go To Stories";
     const infoWindow = new google.maps.InfoWindow({});
     var div = document.createElement("div");
-    div.innerHTML = buttonName;
+    div.innerHTML =
+      '<i class="fa fa-book"  style="font-size: 50px; display:block; margin-left:auto; margin-right:auto; text-align:center"></i><br>';
+    div.innerHTML += buttonName;
     div.onclick = function () {
       iwClick(lat, lng);
     };
+
     infoWindow.setContent(div);
 
     // Set the position of the info window to the clicked location
