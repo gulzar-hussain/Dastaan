@@ -25,48 +25,28 @@
     <!-- <script src="./search.js" defer></script> -->
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
-      <div class="container px-4 px-lg-5">
-        <a class="navbar-brand" href="">Welcome</a>
-        <input
-          id="pac-input"
-          class="controls"
-          type="text"
-          placeholder="Search"
-        />
-        <button
-          class="navbar-toggler navbar-toggler-right"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarResponsive"
-          aria-controls="navbarResponsive"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          Menu
-          <i class="fas fa-bars"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarResponsive">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="">Guide</a></li>
-            <li class="nav-item"><a class="nav-link" href="">Map</a></li>
-            {% if session.get('is_moderator') %}
-            <li class="nav-item">
-              <a class="nav-link" href="">Approve Story</a>
-            </li>
-            {% endif %} {% if session.get('user_id') %}
-            <li class="nav-item"><a class="nav-link" href="">Add Story</a></li>
-            <li class="nav-item"><a class="nav-link" href="">Logout</a></li>
-            {% else %}
-            <li class="nav-item">
-              <a class="nav-link" href="">login/signup</a>
-            </li>
-            {% endif %}
-          </ul>
+    <div>
+      <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container px-4 px-lg-5">
+          <a class="navbar-brand" href="">Map</a>
+          <input
+            id="pac-input"
+            class="controls"
+            type="text"
+            placeholder="Search"
+          />
+          <div id="navbarResponsive">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item"><a class="nav-link" href="http://127.0.0.1:5000/guide">Guide</a></li>
+              <li class="nav-item">
+                <a class="nav-link" href="http://127.0.0.1:5000/">Home</a>
+              </li>
+              
+            </ul>
+          </div>
         </div>
-      </div>
-    </nav>
-    <div></div>
-    <div id="map"></div>
+      </nav>
+      <div id="map"></div>
+    </div>
   </body>
 </html>
