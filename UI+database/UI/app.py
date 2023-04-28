@@ -27,7 +27,7 @@ def get_db_connection():
         user='postgres',
         password='google',
         # host='localhost',
-        host = "10.20.6.185",
+        host = "192.168.137.1",
         port='5432'
     )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
