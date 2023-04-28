@@ -162,15 +162,40 @@ def dashboard():
         LIMIT 1;
     '''
     query2 ='''
-        SELECT s.id, s.description, s.year, i.id AS image_id, i.file_name
-        FROM stories AS s
-        INNER JOIN images AS i ON s.id = i.story_id
-        WHERE s.year = (SELECT MIN(year) FROM stories)
-        ORDER BY s.id ASC
-        LIMIT 1;
+       SELECT s.*, i.file_name AS image_file_name
+FROM stories s
+LEFT JOIN (
+    SELECT story_id, file_name
+    FROM images p1
+    WHERE uploaded_on = (
+        SELECT MAX(uploaded_on)
+        FROM images p2
+        WHERE p1.story_id = p2.story_id
+    )
+) i ON s.id = i.story_id
+WHERE s.is_verified = true 
+  AND lower( s.tag) = 'historical'
+ORDER BY s.year ASC
+LIMIT 1;
     '''
     query3 ='''
-        SELECT * from images LIMIT 10;
+        SELECT s.*, COUNT(v.id) AS visit_count, i.file_name AS image_file_name
+FROM stories s
+INNER JOIN story_visits v ON s.id = v.story_id
+LEFT JOIN (
+    SELECT story_id, file_name
+    FROM images p1
+    WHERE uploaded_on = (
+        SELECT MAX(uploaded_on)
+        FROM images p2
+        WHERE p1.story_id = p2.story_id
+    )
+) i ON s.id = i.story_id
+WHERE s.is_verified = true
+GROUP BY s.id, i.file_name
+ORDER BY visit_count DESC
+LIMIT 5;
+
     '''
     try:
         conn, cur = get_db_connection()
@@ -287,6 +312,10 @@ def getlocations(story_id, flag):
         cur.execute(
             "SELECT UPPER(location) FROM locations WHERE id = %s", (location_id,))
         location = cur.fetchone()[0]
+        q = "INSERT INTO story_visits (story_id,visited_at) VALUES (%s, NOW());"
+        values = (story_id,)
+        cur.execute(q, values)
+        conn.commit()
         print(location)
         cur.close()
         conn.close()
@@ -389,14 +418,14 @@ def addingStory():
                 print("Location added successfully!")
                 if year:
                     add_story = '''INSERT INTO stories (tag,description,user_id,location_id,year,contributor,uploaded_on,title) VALUES 
-                    (%s,%s ,%s, %s,%s,%s,%s,%s) RETURNING id'''
+                    (%s,%s ,%s, %s,%s,%s,NOW(),%s) RETURNING id'''
                     values = (tag, description, user_id,
-                        location_id, year, contributor,now,title)
+                        location_id, year, contributor,title)
                 else:
                     add_story = '''INSERT INTO stories (tag,description,user_id,location_id,contributor,uploaded_on,title) VALUES 
-                    (%s,%s ,%s, %s,%s,%s,%s) RETURNING id'''
+                    (%s,%s ,%s, %s,%s,NOW(),%s) RETURNING id'''
                     values = (tag, description, user_id,
-                        location_id, contributor,now,title)
+                        location_id, contributor,title)
                 cur.execute(add_story, values)
                 '''get id of the story that is just inserted to stories table above'''
                 story_id = cur.fetchone()[0]
