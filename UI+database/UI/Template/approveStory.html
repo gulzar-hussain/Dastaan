@@ -40,12 +40,31 @@
         </nav>
         <!-- Masthead-->
         <!-- Signup-->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <section>
+          {% for category, message in messages %}
+              {% if category == 'approvestory_success' %}
+                <div class="alert fade alert-simple alert-success alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+                  <i class="start-icon far fa-check-circle faa-pulse animated"></i>
+                   Story approved.
+                </div>
+                {% elif category == 'approvestory_error' %}
+                <div class="alert fade alert-simple alert-danger alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+                  <i class="start-icon far fa-times-circle faa-pulse animated"></i>
+                    {{message}}
+                </div>
+                {% endif %}
+              {% endfor %}
+          </section>
+          {% endif %}
+        {% endwith %}
         <section class="signup-section" id="signup">
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5">
                     <div class="col-md-10 col-lg-8 mx-auto text-center">
                         <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
-                        <h2 class="text-white mb-5">Unapproved Stories</h2>
+                        <h2 class="text-white mb-5">Search Unapproved Stories</h2>
                         
                         <form class="form-signup" name = "unapproved" action="/unapprovedStories" method = "POST" data-sb-form-api-token="API_TOKEN">
                             <div class="row input-group-newsletter">
@@ -62,42 +81,18 @@
                     <!-- Include jQuery library -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- Define the click event handler -->
-<div id="mySidenav" class="sidenav">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-    <a href="#">About</a>
-    <a href="#">Services</a>
-    <a href="#">Clients</a>
-    <a href="#">Contact</a>
-  </div>
-  
-  <!-- Use any element to open the sidenav -->
-  <span onclick="openNav()">open</span>
-  
-  <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
   <div id="main">
     ...
   </div>
 
 <!-- Create the table -->
         <table class="styled-table" id="tableId">
-            <!-- {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                <ul class="alert">
-                                    {% for category, message in messages %}
-                                        {% if category == 'error' %}
-                                            <li class="alert-danger">{{ message }}</li>
-                                        {% endif %}
-                                    {% endfor %}
-                                </ul>
-                            {% endif %}
-                        {% endwith %} -->
             <tbody>
                 {% for story in data %}
                 <tr >
                     <td>{{ story.tag.title() }}</td>
                     <td>{{ story.description[:50] }}</td>
-                    <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
+                    <td><form  action="{{ url_for('viewstory', story_id=story.id, flag=flag) }}">
                         <button type="submit" class="btn btn-success">View</button>
                     </form></td>
                 </tr>
@@ -112,7 +107,7 @@
                 <tr >
                     <td>{{ story.tag.title() }}</td>
                     <td>{{ story.description[:50] }}</td>
-                    <td><form  action="{{ url_for('getlocations', story_id=story.id, flag=flag) }}">
+                    <td><form  action="{{ url_for('viewstory', story_id=story.id, flag=flag) }}">
                         <button type="submit" class="btn btn-success">View</button>
                     </form></td>
                 </tr>

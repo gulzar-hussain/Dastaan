@@ -17,7 +17,6 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
-        <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA&callback=initMap"></script> -->
         
         <style>
             /* Set the size of the div element that contains the map */
@@ -53,35 +52,28 @@
                     <div class="col-md-10 col-lg-8 mx-auto text-center">
                         <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
                         <h2 class="text-white mb-5">Tell us your story!</h2>
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- * * SB Forms Contact Form * *-->
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- This form is pre-integrated with SB Forms.-->
-                        <!-- To make this form functional, sign up at-->
-                        <!-- https://startbootstrap.com/solution/contact-forms-->
-                        <!-- to get an API token!-->
-                     
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <section>
-          {% for category, message in messages %}
-              {% if category == 'addstory_error' %}
-                
-                <div class="alert fade alert-simple alert-danger alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
-                  <i class="start-icon far fa-times-circle faa-pulse animated"></i>
-                  <strong class="font__weight-semibold">Sorry!</strong> Story upload failed.
-                </div>
-              {% elif category == 'addstory_success' %}   
-                <div class="alert fade alert-simple alert-primary alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
-                  <i class="start-icon fa fa-thumbs-up faa-bounce animated"></i>
-                  <strong class="font__weight-semibold">Well done!</strong> You successfully added a story.
-                </div>      
-            {% endif %}
-          {% endfor %}
-          </section>
-          {% endif %}
-        {% endwith %}
-                        <form class="form-signup" name = "addingStory" action="/addingStory" method = "POST" data-sb-form-api-token="API_TOKEN" enctype="multipart/form-data">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        <section>
+                          {% for category, message in messages %}
+                              {% if category == 'updatestory_error' %}
+                                
+                                <div class="alert fade alert-simple alert-danger alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+                                  <i class="start-icon far fa-times-circle faa-pulse animated"></i>
+                                  <strong class="font__weight-semibold">Sorry!</strong> Story update failed.
+                                </div>
+                              {% elif category == 'updatestory_success' %}   
+                                <div class="alert fade alert-simple alert-primary alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+                                  <i class="start-icon fa fa-thumbs-up faa-bounce animated"></i>
+                                  {{message}}
+                                </div>      
+                            {% endif %}
+                          {% endfor %}
+                          </section>
+                          {% endif %}
+                        {% endwith %}
+
+                        <form class="form-signup" name = "update" action="{{ url_for('update', story_id=updatestory.id) }}" method = "POST" data-sb-form-api-token="API_TOKEN" enctype="multipart/form-data">
                             <!-- Email address input-->
                             
 
@@ -90,7 +82,7 @@
                                     <label for="location_name" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Location</label>
                                     <div class="col-sm-10">
                                         <div class="input-group">
-                                        <input class="form-control" name="location_name" id="location_name" type="text" placeholder="Enter location..." value="" aria-label="Enter location..." autocomplete="off" required/>
+                                        <input class="form-control" name="location_name" id="location_name" type="text" placeholder="Enter location..." value="{{updatestory['location']}}" aria-label="Enter location..." autocomplete="off" required/> 
                                         <input type="hidden" id="latitude" name="latitude" />
                                         <input type="hidden" id="longitude" name="longitude" />
                                         <button class="btn" style="background-color: #fff;"  type="button" id="btn-current-location" ><i class="fas fa-map-marker-alt"></i></button>
@@ -103,14 +95,14 @@
                                     <label for="timeline" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Timeline</label>
                                     <div class="col-sm-10">
                                       <div class="input-group">
-                                        <input class="form-control" name="timeline" id="timeline" type="number" min="1500" max="2099" pattern="[0-9]*" placeholder="Select Year" value="" aria-label="timeline"  maxlength="4"/>
+                                        <input class="form-control" name="timeline" id="timeline" type="number" min="1900" max="2099" pattern="[0-9]*" placeholder="Select Year" value="{{updatestory['year']}}" aria-label="timeline"  maxlength="4"/>
                                         <button class="btn" style="background-color: #fff;" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-calendar-alt"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-end" style="height: 167px; width: 544px; overflow-y: scroll;">
                                           <script>
                                             const currentYear = new Date().getFullYear();
                                             const yearOptions = [];
-                                            for (let i = currentYear; i >= 1500; i--) {
-                                              yearOptions.push(`<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('timeline').value = '${i}';">${i}</a></li>`);
+                                            for (let i = currentYear; i >= 1900; i--) {
+                                              yearOptions.push( `<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('timeline').value = '${i}';">${i}</a></li>`);
                                             }
                                             document.write(yearOptions.join(''));
                                           </script>
@@ -122,21 +114,25 @@
                                   <div class="row mb-3">
                                     <label for="title" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Title</label>
                                     <div class="col-sm-10">
-                                      <input class="form-control" name="title" id="title" placeholder="title of your story..." required style="font-family: 'Noto Nastaliq Urdu', sans-serif"></input>
+                                        <div class="input-group">
+                                        <input class="form-control" name="title" id="title" placeholder="title of your story..." required style="font-family: 'Noto Nastaliq Urdu', sans-serif" value="{{updatestory['title']}}"></input>
+                                    </div>
                                     </div>
                                   </div>
                                 <div class="row mb-3">
                                   <label for="story" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Story</label>
                                   <div class="col-sm-10">
-                                    <textarea class="form-control" name="story" id="story" placeholder="START WRITING YOUR STORY..." required style="height: 400px;font-family: 'Noto Nastaliq Urdu', sans-serif"></textarea>
+                                    <div class="input-group">
+                                    <textarea class="form-control" name="story" id="story" placeholder="START WRITING YOUR STORY..." required style="height: 400px;font-family: 'Noto Nastaliq Urdu', sans-serif">{{updatestory['description']}}</textarea>
                                   </div>
+                                </div>
                                 </div>
                                                                
                                 <div class="row mb-3">
                                     <label for="tag" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Tag</label>
                                     <div class="col-sm-10">
                                       <div class="input-group">
-                                        <input class="form-control" name="tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="" aria-label="tag"  required/>
+                                        <input class="form-control" name="tag" id="tag" type="text" placeholder="Give it a tag e.g political, cultural..." value="{{updatestory['tag']}}" aria-label="tag"  required/>
                                         <button class="btn dropdown-toggle" style="background-color: #fff;" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
                                         <ul class="dropdown-menu dropdown-menu-end" style="height: 100px; width: 544px;overflow-y: scroll;">
                                           <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('tag').value = 'Historical';">Historical</a></li>
@@ -153,17 +149,17 @@
                                 <div class="row mb-3">
                                   <label for="contributor" class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Contributor</label>
                                   <div class="col-sm-10">
-                                    <input class="form-control" name="contributor" id="contributor" type="text" placeholder="Contributor..." value="" aria-label="contributor" />
+                                    <input class="form-control" name="contributor" id="contributor" type="text" placeholder="Contributor..." value="{{updatestory['contributor']}}" aria-label="contributor" />
                                   </div>
                                 </div>
                               
                                 <div class="row mb-3">
                                   <label class="col-sm-2 col-form-label" style="font-weight: bold; color: white;text-align: left;">Images</label>
                                   <div class="col-sm-7">
-                                    <input type="file" name="files[]" id="fileInput" class="form-control" multiple required>
+                                    <input type="file" name="files[]" id="fileInput" class="form-control" multiple value="updatestory[image_file_name]">
                                   </div>
                                   <div class="col-sm-3">
-                                    <button class="btn btn-primary" id="submitButton" type="submit">Upload</button>
+                                    <button class="btn btn-primary" id="submitButton" type="submit">Update</button>
                                   </div>
                                 </div>
                               </div>
@@ -252,10 +248,10 @@
      </script>
 
 <script>
-      function initAutocomplete() {
-    console.log('google');
-    var input = document.getElementById('location_name');
-    var options = {
+  function initAutocomplete() {
+console.log('google');
+var input = document.getElementById('location_name');
+var options = {
     componentRestrictions: {
       country: 'PK'
     },
@@ -264,26 +260,26 @@
       new google.maps.LatLng(25.128, 67.400)
     )
   };
-    var autocomplete = new google.maps.places.Autocomplete(input,options);
+var autocomplete = new google.maps.places.Autocomplete(input,options);
 
-    autocomplete.addListener('place_changed', function() {
-        var place = autocomplete.getPlace();
-        if (!place.geometry) {
-            console.log("No details available for input: '" + place.name + "'");
-            return;
-        }
+autocomplete.addListener('place_changed', function() {
+    var place = autocomplete.getPlace();
+    if (!place.geometry) {
+        console.log("No details available for input: '" + place.name + "'");
+        return;
+    }
 
-        var latitude = place.geometry.location.lat();
-        var longitude = place.geometry.location.lng();
+    var latitude = place.geometry.location.lat();
+    var longitude = place.geometry.location.lng();
 
-        document.getElementById('latitude').value = latitude;
-        document.getElementById('longitude').value = longitude;
-    });
+    document.getElementById('latitude').value = latitude;
+    document.getElementById('longitude').value = longitude;
+});
 }
 
 google.maps.event.addDomListener(window, 'load', initAutocomplete);
 
-            
+        
 </script>
 
 

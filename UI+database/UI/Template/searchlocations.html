@@ -17,7 +17,7 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
-        <script type="text/javascript" src="../static/js/script.js"></script>
+        
         <style>
            
             .w3-card {
@@ -25,8 +25,6 @@
   border-radius: 30px;
   padding: 10px 10px;
   margin-bottom: 20px;
-  
-
 }
 /* Apply grayscale filter to image */
 img {
@@ -89,7 +87,6 @@ img:hover::before {
   background-color: #64a19d;
   border-color: #64a19d;
 }
-
 </style>
     </head>
     <body id="page-top">
@@ -116,23 +113,27 @@ img:hover::before {
         <!-- Masthead-->
                       
         <!-- Signup-->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <section>
+          {% for category, message in messages %}
+              {% if category == 'searchstory_error' %}
+                <div class="alert fade alert-simple alert-danger alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+                  <i class="start-icon far fa-times-circle faa-pulse animated"></i>
+                  <strong class="font__weight-semibold">Sorry !</strong> No Stories found.
+                </div>
+                {% endif %}
+              {% endfor %}
+          </section>
+          {% endif %}
+        {% endwith %}
         <section class="signup-section" id="signup">
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5">
                     <div class="col-md-10 col-lg-8 mx-auto text-center">
                         <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
                         <h2 class="text-white mb-5">Search for places you want to know!</h2>
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- * * SB Forms Contact Form * *-->
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- This form is pre-integrated with SB Forms.-->
-                        <!-- To make this form functional, sign up at-->
-                        <!-- https://startbootstrap.com/solution/contact-forms-->
-                        <!-- to get an API token!-->
-                        <!-- <form  name = "searchlocations" action="/searchlocations" method = "POST">
-                            <div class="col"><input class="form-control" name = "location_name" id="location_name" type="text" placeholder="Enter location..." aria-label="Enter location..." /></div>
-                            <div ><button  id="submitButton" type="submit" value=" submit">Search</button></div>
-                        </form> -->
+                          
                         <form class="form-signup" name = "searchlocations" action="/searchlocations" method = "POST" data-sb-form-api-token="API_TOKEN">
                             <!-- Email address input-->
                             <div class="row input-group-newsletter" style="margin-bottom: 30px;">
@@ -155,10 +156,10 @@ img:hover::before {
     
     <div class="w3-card">
         
-        <a href="{{ url_for('getlocations', story_id=story.id, flag=0) }}">
+        <a href="{{ url_for('viewstory', story_id=story.id, flag=0) }}">
           <div class="location" >{{story.title}}</div>
         </a>
-        <img src="{{ url_for('get_image', filename=story['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('getlocations', story_id=story.id, flag=0) }}')">
+        <img src="{{ url_for('get_image', filename=story['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=story.id, flag=0) }}')">
         
     </div>
     
@@ -169,9 +170,12 @@ img:hover::before {
 
 
 <!-- <h2 class="text-white mb-5" style="margin-top: 30px;">Stories Near Your Selected Location</h2> -->
-<div class="w3-container w3-teal"style="right:20px;margin-top:30px;margin-bottom:30px;border-radius:30px;">
+{%if nearbyStories %}
+<div class="w3-container w3-teal"style="right:20px;margin-top:30px;margin-bottom:30px;border-radius:0px;text-align:center;">
     <h1>Stories Near Your Searched Location</h1>
   </div>
+ {%endif%}
+
   <div class="w3-row-padding w3-margin-top">
     {% for story in nearbyStories %}
     <div class="w3-third">
@@ -179,10 +183,10 @@ img:hover::before {
     
     <div class="w3-card">
         
-        <a href="{{ url_for('getlocations', story_id=story.id, flag=0) }}">
+        <a href="{{ url_for('viewstory', story_id=story.id, flag=0) }}">
           <div class="location" >{{story.title}}</div>
         </a>
-        <img src="{{ url_for('get_image', filename=story['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('getlocations', story_id=story.id, flag=0) }}')">
+        <img src="{{ url_for('get_image', filename=story['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=story.id, flag=0) }}')">
         
     </div>
     

@@ -184,11 +184,12 @@ span
                                 <i class="fas fa-user-circle fa-lg"></i> Profile<!-- Replace with your user profile icon -->
                             </a>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="{{url_for('logout')}}">Logout</a>
-                                <a class="dropdown-item" href="{{url_for('user_stories')}}">My Stories</a>
+                                
                                 {% if session.get('is_moderator') %}
                                 <a class="dropdown-item" href="{{url_for('approveStory')}}">Approve Stories</a>
                                 {% endif %}
+                                <a class="dropdown-item" href="{{url_for('user_stories')}}">My Stories</a>
+                                <a class="dropdown-item" href="{{url_for('logout')}}">Logout</a>
                             </div>
                         </li>
                         
@@ -204,17 +205,34 @@ span
         <!-- Masthead-->
         <header class="masthead" id="masthead">
             {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class="alert">
-                    {% for category, message in messages %}
-                        {% if category == 'error' %}
-                            <li class="alert-danger">{{ message }}</li>
-                        {% elif category == 'success' %}
-                            <li class="alert-success">{{ message }}</li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
+        {% if messages %}
+        <section>
+          {% for category, message in messages %}
+              {% if category == 'user_error' %}
+                
+                <div class="alert fade alert-simple alert-danger alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+                  <i class="start-icon far fa-times-circle faa-pulse animated"></i>
+                  {{message}}
+                </div>
+              {% elif category == 'user_success' %}   
+                <div class="alert fade alert-simple alert-success alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+                  <i class="start-icon far fa-check-circle faa-tada animated"></i>
+                  {{message}}
+                </div> 
+            {% elif category == 'logout_success' %}   
+            <div class="alert fade alert-simple alert-success alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+            <i class="start-icon far fa-check-circle faa-tada animated"></i>
+                {{message}}
+            </div> 
+            {% elif category == 'user_warning' %}   
+            <div class="alert fade alert-simple alert-warning alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+            <i class="start-icon fa fa-exclamation-triangle faa-flash animated"></i>
+                {{message}}
+            </div>      
             {% endif %}
+          {% endfor %}
+          </section>
+          {% endif %}
         {% endwith %}
         <script>
             // Get all the alert elements
@@ -225,7 +243,7 @@ span
               // Set a timeout to remove the alert after 3 seconds
               setTimeout(function() {
                 alert.remove();
-              }, 3000);
+              }, 5000);
             });
           </script>
             <div id= 'login-form' class='login-page'>
@@ -258,7 +276,7 @@ span
                 <div class="d-flex justify-content-center">
                     <div class="text-center">
                         <h1 class="mx-auto my-0 text-uppercase" >داستان</h1>
-                        <h2 class="text-white-50 mx-auto mt-2 mb-5">Digital Museum for Karachi</h2>
+                        <h2 class="text-white-50 mx-auto mt-2 mb-5">Hertitage Site for Karachi</h2>
                      
                         <a class="btn btn-primary" href="#search">Get Started</a>
                         
@@ -291,9 +309,9 @@ span
                         <button class="carousel-button next" data-carousel-button="next">&#10095;</button>
                         <ul data-slides>
                            
-                              {% for image in images %}
+                              {% for stroy in mostvisited %}
                               <li class="slide" data-active>
-                              <img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=image['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('getlocations', story_id=image['id'], flag=0) }}')">
+                              <img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=stroy['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=stroy.id, flag=0) }}')">
                             </li> 
                               {% endfor %}
                           
@@ -316,7 +334,7 @@ span
                                     <h4 class="text-white">Recently Added</h4>
                                     <p class="mb-0 text-white-50" style="font-family: 'Noto Nastaliq Urdu', sans-serif; ">{{latestStory['description'][:600]}}
                                     <br> 
-                                    <a href="{{ url_for('getlocations', story_id=latestStory['id'], flag=0) }}" >View Full Story</a>
+                                    <a href="{{ url_for('viewstory', story_id=latestStory['id'], flag=0) }}" >View Full Story</a>
 
                                     </p>
                                     <hr class="d-none d-lg-block mb-0 ms-0" />
@@ -335,7 +353,7 @@ span
                                     <h4 class="text-white">Historically Significant</h4>
                                     <p class="mb-0 text-white-50" style="font-family: 'Noto Nastaliq Urdu', sans-serif; ">{{historicStory['description'][:600]}}
                                         <br> 
-                                        <a href="{{ url_for('getlocations', story_id=historicStory['id'], flag=0) }}" >View Full Story</a>
+                                        <a href="{{ url_for('viewstory', story_id=historicStory['id'], flag=0) }}" >View Full Story</a>
     
                                         </p>
                                     <hr class="d-none d-lg-block mb-0 me-0" />
