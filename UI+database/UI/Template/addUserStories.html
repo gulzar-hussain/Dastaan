@@ -47,20 +47,6 @@
             </div>
         </nav>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <section class="signup-section" id="signup">
-            <div class="container px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5">
-                    <div class="col-md-10 col-lg-8 mx-auto text-center">
-                        <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
-                        <h2 class="text-white mb-5">Tell us your story!</h2>
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- * * SB Forms Contact Form * *-->
-                        <!-- * * * * * * * * * * * * * * *-->
-                        <!-- This form is pre-integrated with SB Forms.-->
-                        <!-- To make this form functional, sign up at-->
-                        <!-- https://startbootstrap.com/solution/contact-forms-->
-                        <!-- to get an API token!-->
-                     
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <section>
@@ -81,6 +67,13 @@
           </section>
           {% endif %}
         {% endwith %}
+        <section class="signup-section" id="signup">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5">
+                    <div class="col-md-10 col-lg-8 mx-auto text-center">
+                        <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
+                        <h2 class="text-white mb-5">Tell us your story!</h2>
+                        
                         <form class="form-signup" name = "addingStory" action="/addingStory" method = "POST" data-sb-form-api-token="API_TOKEN" enctype="multipart/form-data">
                             <!-- Email address input-->
                             

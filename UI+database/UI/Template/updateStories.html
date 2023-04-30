@@ -46,13 +46,7 @@
             </div>
         </nav>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <section class="signup-section" id="signup">
-            <div class="container px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5">
-                    <div class="col-md-10 col-lg-8 mx-auto text-center">
-                        <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
-                        <h2 class="text-white mb-5">Tell us your story!</h2>
-                        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                         <section>
                           {% for category, message in messages %}
@@ -63,8 +57,8 @@
                                   <strong class="font__weight-semibold">Sorry!</strong> Story update failed.
                                 </div>
                               {% elif category == 'updatestory_success' %}   
-                                <div class="alert fade alert-simple alert-primary alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
-                                  <i class="start-icon fa fa-thumbs-up faa-bounce animated"></i>
+                                <div class="alert fade alert-simple alert-success alert-dismissible text-left font__family-montserrat font__size-16 font__weight-light brk-library-rendered rendered show" role="alert" data-brk-library="component__alert">
+                                  <i class="start-icon fa fa-check-circle faa-bounce animated"></i>
                                   {{message}}
                                 </div>      
                             {% endif %}
@@ -72,6 +66,12 @@
                           </section>
                           {% endif %}
                         {% endwith %}
+        <section class="signup-section" id="signup">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5">
+                    <div class="col-md-10 col-lg-8 mx-auto text-center">
+                        <i class="far fa-paper-plane fa-2x mb-2 text-white"></i>
+                        <h2 class="text-white mb-5">Tell us your story!</h2>
 
                         <form class="form-signup" name = "update" action="{{ url_for('update', story_id=updatestory.id) }}" method = "POST" data-sb-form-api-token="API_TOKEN" enctype="multipart/form-data">
                             <!-- Email address input-->

@@ -824,15 +824,15 @@ def update(story_id):
             if location_id:
                 print("Location updated successfully!")
             update_story = '''UPDATE stories 
-                SET tag =  %s,
-                    description =  %s, 
-                    user_id =  %s, 
+                SET tag = %s,
+                    description = %s, 
+                    user_id = %s, 
                     location_id = %s,
-                    year = %s, 
-                    is_verified =  false, 
-                    contributor = %s, 
+                    year = COALESCE(NULLIF(%s, '')::integer, year), 
+                    is_verified = false, 
+                    contributor = COALESCE(%s, contributor), 
                     uploaded_on = NOW(),
-                    title =  %s                
+                    title = %s                
                 WHERE id = %s;
                 '''
             values = (tag, description, user_id,
