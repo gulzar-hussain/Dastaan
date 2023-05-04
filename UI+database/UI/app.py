@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
+OPENAI_API_KEY=""  #ask hamna for openai key
 
 def get_db_connection():
 
@@ -25,8 +26,7 @@ def get_db_connection():
         database='mydastaan',
         user='postgres',
         password='google',
-        host= 'localhost',
-        # host = "10.20.6.185",
+        host= '192.168.43.24',
         port='5432'
     )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -35,7 +35,7 @@ def get_db_connection():
 
 app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = os.environ.get('APP_SECRET_KEY')
-openai.api_key = os.environ.get('OPENAI_API_KEY')
+openai.api_key = OPENAI_API_KEY
 # app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 CORS(app, methods=["POST"])
 # Flask-Mail configuration
