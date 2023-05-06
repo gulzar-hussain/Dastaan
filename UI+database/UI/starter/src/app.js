@@ -192,3 +192,21 @@ function iwClick(lat, lng) {
     infoWindow.open(map);
   });
 })();
+
+// GET ALL STORIES AND LOCATION_DATA
+fetch('http://127.0.0.1:5000/locationData')
+  .then(response => response.json())
+  .then(data => {
+    // Access lat and long data from the JSON response
+    const stories = data;
+    for (const story of stories) {
+      
+      const lat = story.latitude;
+      const lng = story.longitude;      
+      // Other data like location, location_data (point) and story_id can also be accessed.
+      console.log(`Latitude: ${lat}, Longitude: ${lng}`);
+    }
+  })
+  .catch(error => console.error(error));
+
+  

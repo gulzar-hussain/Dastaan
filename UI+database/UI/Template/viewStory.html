@@ -18,6 +18,9 @@
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+        
+
+
 
         <style>.description {
             font-size: 18px;
@@ -76,7 +79,20 @@
                         <li class="nav-item"><a class="nav-link" href="{{url_for('searchlocations')}}">Search Story</a></li>
                         {% if session.get('user_id') %}
                         <li class="nav-item"><a class="nav-link" href="{{url_for('addingStory')}}">Add Story</a></li>
-                        
+                        <li class="nav-item dropdown">
+                          <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <i class="fas fa-user-circle fa-lg"></i> Profile<!-- Replace with your user profile icon -->
+                          </a>
+                          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                              
+                              {% if session.get('is_moderator') %}
+                              <a class="dropdown-item" href="{{url_for('approveStory')}}">Approve Stories</a>
+                              <a class="dropdown-item" href="{{url_for('all_stories')}}">Delete Stories</a>
+                              {% endif %}
+                              <a class="dropdown-item" href="{{url_for('user_stories')}}">My Stories</a>
+                              <a class="dropdown-item" href="{{url_for('logout')}}">Logout</a>
+                          </div>
+                      </li>
                         {% endif %}
                         <!-- <button onclick="window.history.back();" class="btn btn-primary" style="background-color: transparent; width: 10px; height: 5px;margin-top: 15px;color: #64a19d;">&#10094;</button> -->
                         <a onclick="window.history.back();">
@@ -87,7 +103,9 @@
             </div>
         </nav>
         <!-- Masthead-->
-                      
+        <!-- Include Bootstrap JavaScript and jQuery libraries -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
         <!-- Signup-->
         <section class="signup-section" id="signup">
             <div class="container px-4 px-lg-5">
@@ -122,6 +140,12 @@
                                             <button type="submit" class="btn btn-success">Approve</button>
                                         </form>
                                         {% endif %}
+                                        {% if session.get('is_moderator') and is_from_approve == 2 %}
+                                    
+                                        <form  action="{{ url_for('deleted', story_id=story.id) }}">
+                                            <button type="submit" class="btn btn-success">Delete</button>
+                                        </form>
+                                        {% endif %}
 
                                         
                                     </p>
@@ -146,7 +170,7 @@
                 
                     <!-- Include jQuery library -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+        
                 </div>
             </div>
         </section>
@@ -161,7 +185,7 @@
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
-        <script type="text/javascript" src="../static/js/script.js"></script>
+        
         <script>
             const buttons = document.querySelectorAll("[data-carousel-button]")
 
@@ -233,7 +257,7 @@
 
 // Navbar shrink function
 var navbarShrink = function () {
-    const navbarCollapsible = document.body.querySelector ('#mainNav');
+    const navbarCollapsible = document.body.querySelector('#mainNav');
     if (!navbarCollapsible) {
         return;
     }
@@ -260,6 +284,9 @@ if (mainNav) {
     });
 };
 
+  
+
+
 // Collapse responsive navbar when toggler is visible
 const navbarToggler = document.body.querySelector('.navbar-toggler');
 const responsiveNavItems = [].slice.call(
@@ -273,9 +300,20 @@ responsiveNavItems.map(function (responsiveNavItem) {
     });
 });
 
+
+
+
 });
+
           </script>
+           <!-- jQuery UI CSS -->
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+        <!-- jQuery and jQuery UI JavaScript -->
+        <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
        
     </body>
+    <script type="text/javascript" src="../static/js/script.js"></script>
     
 </html>

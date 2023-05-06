@@ -187,6 +187,7 @@ span
                                 
                                 {% if session.get('is_moderator') %}
                                 <a class="dropdown-item" href="{{url_for('approveStory')}}">Approve Stories</a>
+                                <a class="dropdown-item" href="{{url_for('all_stories')}}">Delete Stories</a>
                                 {% endif %}
                                 <a class="dropdown-item" href="{{url_for('user_stories')}}">My Stories</a>
                                 <a class="dropdown-item" href="{{url_for('logout')}}">Logout</a>
@@ -326,7 +327,7 @@ span
                 </div>
                 <!-- Project One Row-->
                 <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid" src="{{ url_for('get_image', filename=latestStory['file_name']) }}" alt="image" /></div>
+                    <div class="col-lg-6"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=latestStory['file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=latestStory.id, flag=0) }}')"></div>
                     <div class="col-lg-6">
                         <div class="bg-black text-center h-100 project">
                             <div class="d-flex h-100">
@@ -345,7 +346,7 @@ span
                 </div>
                 <!-- Project Two Row-->
                 <div class="row gx-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid" src="{{url_for('get_image', filename=historicStory['image_file_name'])}}" alt="..." /></div>
+                    <div class="col-lg-6"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=historicStory['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=historicStory.id, flag=0) }}')"></div>
                     <div class="col-lg-6 order-lg-first">
                         <div class="bg-black text-center h-100 project">
                             <div class="d-flex h-100">
@@ -482,6 +483,10 @@ var btn = document.getElementById("loginbtn");
 
 // When the user clicks on the button, open the modal
 btn.onclick = function() {
+    if (window.pageYOffset > 0) {
+    // Scroll to the top of the page
+    window.scrollTo(0, 0);
+  }
   modal.style.display = "block";
 }
 

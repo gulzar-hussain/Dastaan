@@ -26,7 +26,7 @@ def get_db_connection():
         database='mydastaan',
         user='postgres',
         password='google',
-        host= '10.20.6.29',
+        host= 'localhost', # ask Gulzar for IP
         port='5432'
     )
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -223,7 +223,31 @@ def dashboard():
 
 @app.route("/test")
 def test():
-    return render_template("accountsettings.html")
+    query3 ='''
+        SELECT s.*, COUNT(v.id) AS visit_count, i.file_name AS image_file_name
+        FROM stories s
+        INNER JOIN story_visits v ON s.id = v.story_id
+        LEFT JOIN (
+            SELECT story_id, file_name
+            FROM images p1
+            WHERE uploaded_on = (
+                SELECT MAX(uploaded_on)
+                FROM images p2
+                WHERE p1.story_id = p2.story_id
+            )
+        ) i ON s.id = i.story_id
+        WHERE s.is_verified = true
+        GROUP BY s.id, i.file_name
+        ORDER BY visit_count DESC
+        LIMIT 5;
+    '''
+   
+    conn, cur = get_db_connection()
+       
+    cur.execute(query3)
+    mostvisited = cur.fetchall()
+    conn.close()
+    return render_template("accountsettings.html",mostvisited=mostvisited)
 @app.route("/autocomplete")
 def autocomplete():
     term = request.args.get('term')
@@ -323,6 +347,31 @@ def approved(story_id):
         print(error)
 
     return render_template('approveStory.html')
+
+@app.route('/deleted/<int:story_id>')
+# @login_required(role='moderator')
+def deleted(story_id):
+    # Get the story from the database based on the story_id
+    # Render the HTML page with the story data
+    try:
+        conn, cur = get_db_connection()
+        cur.execute("DELETE FROM images WHERE story_id = %s", (story_id,))
+        conn.commit()
+        cur.execute("DELETE FROM story_visits WHERE story_id = %s", (story_id,))
+        conn.commit()
+        cur.execute("DELETE FROM stories WHERE id = %s", (story_id,))
+        conn.commit()
+        flash("Story Deleted Successfully!","deletestory_success")
+        cur.close()
+        conn.close()
+        return redirect(url_for('all_stories'))
+        # return render_template('approveStory.html')
+
+    except Exception as error:
+        print(error)
+        flash("Story Couln't not be deleted!","deletestory_error")
+
+    return render_template('deleteStories.html')
 
 
 @app.route("/searchlocations", methods=['POST', 'GET'])
@@ -721,7 +770,52 @@ def search_locations():
     conn.close()
         
     return render_template('searchlocations.html', data=stories, nearbyStories=nearbyStories, searchtext=location)
- 
+
+@app.route('/locationData', methods=('GET','POST')) 
+def locationData(): 
+    query1 = '''
+        SELECT s.id, l.location,l.location_data,l.latitude,l.longitude, i.file_name AS image_file_name
+        FROM stories s
+        JOIN locations l ON s.location_id = l.id
+        JOIN users u ON s.user_id = u.id
+        LEFT JOIN (
+            SELECT story_id, file_name
+            FROM images i1
+            WHERE uploaded_on = (
+                SELECT MAX(uploaded_on)
+                FROM images i2
+                WHERE i1.story_id = i2.story_id
+            )
+        ) i ON s.id = i.story_id
+        WHERE s.is_verified = true 
+        ORDER BY s.year DESC;
+    '''
+    conn, cur = get_db_connection()
+    try:
+        cur.execute(query1)
+        
+        data = cur.fetchall()  
+        cur.close()
+        conn.close()
+        # Convert the data to a JSON response
+        response = []
+        for row in data:
+            response.append({
+                'story_id': row[0],
+                'location': row[1],
+                'location_data':row[2],
+                'latitude': row[3],
+                'longitude': row[4],
+            })
+        return jsonify(response)
+        
+        
+        # return jsonify({'message': 'Coordinates received', 'data': allapprovedStories})
+
+    except psycopg2.Error as e:
+        conn.rollback()
+        print("Error: ", e)
+        return redirect(url_for('dasboard'))
 @app.route('/userstories', methods=('GET','POST')) 
 def user_stories():
     user_id = session['user_id']   
@@ -781,6 +875,63 @@ def user_stories():
     except psycopg2.Error as e:
         conn.rollback()
         print("Error: ", e)
+        
+@app.route('/allstories', methods=('GET','POST')) 
+def all_stories():
+        
+    # all approved stories
+    query1 = '''
+        SELECT s.*, l.location, i.file_name AS image_file_name
+        FROM stories s
+        JOIN locations l ON s.location_id = l.id
+        JOIN users u ON s.user_id = u.id
+        LEFT JOIN (
+            SELECT story_id, file_name
+            FROM images i1
+            WHERE uploaded_on = (
+                SELECT MAX(uploaded_on)
+                FROM images i2
+                WHERE i1.story_id = i2.story_id
+            )
+        ) i ON s.id = i.story_id
+        WHERE s.is_verified = true 
+        ORDER BY s.year DESC;
+    '''
+    # all unapproved stories
+    query2 = '''
+        SELECT s.*, l.location, i.file_name AS image_file_name
+        FROM stories s
+        JOIN locations l ON s.location_id = l.id
+        JOIN users u ON s.user_id = u.id
+        LEFT JOIN (
+            SELECT story_id, file_name
+            FROM images i1
+            WHERE uploaded_on = (
+                SELECT MAX(uploaded_on)
+                FROM images i2
+                WHERE i1.story_id = i2.story_id
+            )
+        ) i ON s.id = i.story_id
+        WHERE s.is_verified = false 
+        ORDER BY s.year DESC;
+    '''
+    conn, cur = get_db_connection()
+    try:
+        cur.execute(query1)
+        
+        approvedStories = cur.fetchall()  
+        if not approvedStories:flash("No stories found","deletestory_error")
+        cur.execute(query2) 
+        unapprovedStories = cur.fetchall()  
+        if not unapprovedStories and approvedStories:flash("No stories found","deletestory_error")
+        cur.close()
+        conn.close()
+        return render_template("deleteStories.html", approved=approvedStories,unapproved = unapprovedStories)
+
+    except psycopg2.Error as e:
+        conn.rollback()
+        print("Error: ", e) 
+        
 @app.route('/updatestory/<int:story_id>', methods=('GET','POST')) 
 def update_stories(story_id):
     q = '''
