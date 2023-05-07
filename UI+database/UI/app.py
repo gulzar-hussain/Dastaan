@@ -1,3 +1,4 @@
+import base64
 from flask import redirect
 from flask_cors import CORS
 import re
@@ -23,7 +24,7 @@ def get_db_connection():
 
     conn = None
     conn = psycopg2.connect(
-        database='mydastaan',
+        database='Mydastaan',
         user='postgres',
         password='google',
         host= 'localhost', # ask Gulzar for IP
@@ -57,7 +58,6 @@ ts = URLSafeTimedSerializer(app.secret_key)
 '''
 For uploading multiple images
 '''
-app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_FOLDER')
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 
@@ -92,11 +92,11 @@ def get_nearby_stories(location):
     SELECT location_data
     FROM locations
     WHERE location = %s
-    )SELECT s.*, l.location, p.file_name as image_file_name
+    )SELECT s.*, l.location, p.file_name as image_file_name,p.image_data
     FROM stories s
     JOIN locations l ON s.location_id = l.id
     LEFT JOIN (
-        SELECT story_id, file_name
+        SELECT story_id, file_name, image_data
         FROM images p1
         WHERE uploaded_on  = (
             SELECT MAX(uploaded_on)
@@ -114,11 +114,35 @@ def get_nearby_stories(location):
         FROM locations 
         WHERE location_data = (SELECT location_data FROM user_location)
     )
-    GROUP BY s.id, l.location, p.file_name
+    GROUP BY s.id, l.location, p.file_name, p.image_data
     ORDER BY s.year DESC;'''
     values = (location,)
     cur.execute(query, values)
-    nearby_stories = cur.fetchall()
+    rows = cur.fetchall()
+    # print(row)
+    if rows is None:
+        flash('No nearby stories found', 'searchstory_error')
+    nearby_stories = []
+    for row in rows:
+        story = {
+            'id': row[0],
+            'tag': row[1],
+            'description': row[2],
+            'user_id': row[3],
+            'location_id': row[4],
+            'year': row[5],
+            'is_verified': row[6],
+            'contributor': row[7],
+            'uploaded_on': row[8],
+            'title': row[9],
+            'location': row[10],
+            'image': []}
+
+        if row['image_data'] is not None:
+            data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+            story['image'].append(data_uri)
+        nearby_stories.append(story)
+    
     cur.close()
     conn.close()
     return nearby_stories
@@ -128,7 +152,7 @@ def get_nearby_stories(location):
 def dashboard():
     # latest story uploaded
     query1 ='''
-        SELECT s.id, s.description, s.uploaded_on, i.id AS image_id, i.file_name
+        SELECT s.*, i.id AS image_id,i.image_data, i.file_name 
         FROM stories AS s
         INNER JOIN images AS i ON s.id = i.story_id
         WHERE s.is_verified = true
@@ -136,28 +160,21 @@ def dashboard():
         LIMIT 1;
     '''
     query2 ='''
-        SELECT s.*, i.file_name AS image_file_name
+        SELECT s.*, i.file_name AS image_file_name, i.image_data
         FROM stories s
-        LEFT JOIN (
-            SELECT story_id, file_name
-            FROM images p1
-            WHERE uploaded_on = (
-                SELECT MAX(uploaded_on)
-                FROM images p2
-                WHERE p1.story_id = p2.story_id
-            )
-        ) i ON s.id = i.story_id
+        LEFT JOIN images i ON s.id = i.story_id
         WHERE s.is_verified = true 
-        AND lower( s.tag) = 'historical'
+        AND lower(s.tag) = 'historical'
+        GROUP BY s.id, i.file_name ,i.image_data
         ORDER BY s.year ASC
         LIMIT 1;
     '''
     query3 ='''
-        SELECT s.*, COUNT(v.id) AS visit_count, i.file_name AS image_file_name
+        SELECT s.*, COUNT(v.id) AS visit_count, i.file_name AS image_file_name, i.image_data
         FROM stories s
         INNER JOIN story_visits v ON s.id = v.story_id
         LEFT JOIN (
-            SELECT story_id, file_name
+            SELECT story_id, file_name, image_data
             FROM images p1
             WHERE uploaded_on = (
                 SELECT MAX(uploaded_on)
@@ -166,20 +183,87 @@ def dashboard():
             )
         ) i ON s.id = i.story_id
         WHERE s.is_verified = true
-        GROUP BY s.id, i.file_name
+        GROUP BY s.id, i.file_name, i.image_data
         ORDER BY visit_count DESC
         LIMIT 5;
     '''
     try:
         conn, cur = get_db_connection()
         cur.execute(query1)
-        latest_story = cur.fetchone()
+        # latest_story = cur.fetchone()
+        row = cur.fetchone()
+        # print(row)
+        if row is None:
+            return "Story not found"
+        latest_story = {
+            'id': row[0],
+            'tag': row[1],
+            'description': row[2],
+            'user_id': row[3],
+            'location_id': row[4],
+            'year': row[5],
+            'is_verified': row[6],
+            'contributor': row[7],
+            'uploaded_on': row[8],
+            'title': row[9],
+            'location': row[10],
+            'image': []}
+   
+        if row['image_data'] is not None:
+            data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+            latest_story['image'].append(data_uri)
         
         cur.execute(query2)
-        historic_story = cur.fetchone()
+        # historic_story = cur.fetchone()
+        row = cur.fetchone()
+        # print(row)
+        if row is None:
+            return "Story not found"
+        historic_story = {
+            'id': row[0],
+            'tag': row[1],
+            'description': row[2],
+            'user_id': row[3],
+            'location_id': row[4],
+            'year': row[5],
+            'is_verified': row[6],
+            'contributor': row[7],
+            'uploaded_on': row[8],
+            'title': row[9],
+            'location': row[10],
+            'image': []}
+   
+        if row['image_data'] is not None:
+            data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+            historic_story['image'].append(data_uri)
         
         cur.execute(query3)
-        mostvisited = cur.fetchall()
+        # mostvisited = cur.fetchall()
+        rows = cur.fetchall()
+        # print(row)
+        if rows is None:
+            return "Story not found"
+        mostvisited = []
+        for row in rows:
+            story = {
+                'id': row[0],
+                'tag': row[1],
+                'description': row[2],
+                'user_id': row[3],
+                'location_id': row[4],
+                'year': row[5],
+                'is_verified': row[6],
+                'contributor': row[7],
+                'uploaded_on': row[8],
+                'title': row[9],
+                'location': row[10],
+                'image': []}
+    
+            if row['image_data'] is not None:
+                data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+                story['image'].append(data_uri)
+            mostvisited.append(story)
+       
         conn.close()
     except Exception as error:
         print(error)
@@ -191,11 +275,11 @@ def dashboard():
             conn, cur = get_db_connection()
                       
             query = '''
-                SELECT s.*, l.location, i.file_name as image_file_name
+                SELECT s.*, l.location, i.file_name as image_file_name, i.image_data
                 FROM stories s
                 JOIN locations l ON s.location_id = l.id
                 LEFT JOIN (
-                    SELECT story_id, file_name
+                    SELECT story_id, file_name, image_data -- add image_data to the SELECT statement
                     FROM images p1
                     WHERE uploaded_on = (
                         SELECT MAX(uploaded_on)
@@ -204,13 +288,38 @@ def dashboard():
                     )
                 ) i ON s.id = i.story_id
                 WHERE s.is_verified = true AND l.location = %s
-                GROUP BY s.id, l.location, i.file_name;   
+                GROUP BY s.id, l.location, i.file_name, i.image_data;
+   
                 '''
             cur.execute(query, (location,))
-            stories = cur.fetchall()
+            
+            rows = cur.fetchall()
+            # print(row)
+        
+            stories = []
+            for row in rows:
+                story = {
+                    'id': row[0],
+                    'tag': row[1],
+                    'description': row[2],
+                    'user_id': row[3],
+                    'location_id': row[4],
+                    'year': row[5],
+                    'is_verified': row[6],
+                    'contributor': row[7],
+                    'uploaded_on': row[8],
+                    'title': row[9],
+                    'location': row[10],
+                    'image': []}
+        
+                if row['image_data'] is not None:
+                    data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+                    story['image'].append(data_uri)
+                stories.append(story)
+            
             if len(stories) == 0:
                 flash('No stories found', 'searchstory_error')
-            print(stories)
+            
             nearbyStories = get_nearby_stories(location)
             conn.close()
             return render_template('searchlocations.html', data=stories, nearbyStories=nearbyStories, searchtext=location)
@@ -220,6 +329,50 @@ def dashboard():
         return render_template('searchlocations.html')
 
     return render_template('index.html',latestStory = latest_story,historicStory = historic_story, mostvisited = mostvisited)
+
+@app.route('/showstory')
+def show_story():
+    conn,cur = get_db_connection()
+    # Fetch the story and its images from the database
+    cur.execute("SELECT s.*, l.location, i.file_name, i.image_data FROM stories s JOIN locations l ON s.location_id = l.id LEFT JOIN st_images i ON s.id = i.story_id WHERE s.id = %s", (50,))
+    row = cur.fetchone()
+    # print(row)
+    if row is None:
+        return "Story not found"
+    story = {
+        'id': row[0],
+        'tag': row[1],
+        'description': row[2],
+        'user_id': row[3],
+        'location_id': row[4],
+        'year': row[5],
+        'is_verified': row[6],
+        'contributor': row[7],
+        'uploaded_on': row[8],
+        'title': row[9],
+        'location': row[10],
+        'images': []
+    }
+    while row is not None:
+        if row[11] is not None:
+            image = {
+                'file_name': row[11],
+                'data': row[12]
+            }
+            story['images'].append(image)
+        row = cur.fetchone()
+
+    # Render the HTML template and pass the story to it
+    # Build HTML for story and images
+    html = f"<h1>{story['title']}</h1>"
+    html += f"<p>{story['description']}</p>"
+    for image in story['images']:
+        if image['data'] is not None:
+            data_uri = base64.b64encode(image['data']).decode('utf-8')
+            html += f"<img src='data:image/jpeg;base64,{data_uri}'/>"
+    cur.close()
+    conn.close()
+    return html
 
 @app.route("/test")
 def test():
@@ -276,16 +429,6 @@ def autocomplete():
     return jsonify(results1,results2)
 
 
-@app.route('/image/<filename>')
-def get_image(filename):
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    if os.path.isfile(filepath):
-        print('file is here')
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, environ=request.environ)
-    else:
-        abort(404)
-
-
 @app.route('/location/<int:story_id>/<int:flag>')
 def viewstory(story_id, flag):
     print('view story: ',story_id)
@@ -293,20 +436,40 @@ def viewstory(story_id, flag):
     # Render the HTML page with the story data
     try:
         conn, cur = get_db_connection()
-        q = '''
-        SELECT s.*, l.location, u.username
-        FROM stories s
-        JOIN locations l ON s.location_id = l.id
-        JOIN users u ON s.user_id = u.id
-        WHERE s.id = %s;
-
-        '''
-        cur.execute(q, (story_id,))
-        story = cur.fetchone()
-        
-        cur.execute("SELECT * FROM images WHERE story_id = %s", (story_id,))
-        images = cur.fetchall()
-        
+        cur.execute("SELECT s.*, l.location, i.file_name, i.image_data FROM stories s JOIN locations l ON s.location_id = l.id LEFT JOIN images i ON s.id = i.story_id WHERE s.id = %s", (story_id,))
+        row = cur.fetchone()
+        # print(row)
+        if row is None:
+            return "Story not found"
+        story = {
+            'id': row[0],
+            'tag': row[1],
+            'description': row[2],
+            'user_id': row[3],
+            'location_id': row[4],
+            'year': row[5],
+            'is_verified': row[6],
+            'contributor': row[7],
+            'uploaded_on': row[8],
+            'title': row[9],
+            'location': row[10],
+            'images': []
+        }
+        while row is not None:
+            if row[11] is not None:
+                image = {
+                    'file_name': row[11],
+                    'data': row[12]
+                }
+                story['images'].append(image)
+            row = cur.fetchone()
+        images = []    
+        for image in story['images']:
+            if image['data'] is not None:
+                data_uri = base64.b64encode(image['data']).decode('utf-8')
+                images.append(data_uri)
+                
+  
         q = '''
             INSERT INTO story_visits (story_id, visited_at)
             SELECT s.id, NOW()
@@ -319,7 +482,7 @@ def viewstory(story_id, flag):
         print('Visits count incremented')
         cur.close()
         conn.close()
-
+        print('end of view')
         return render_template('viewstory.html', story=story, images=images, is_from_approve=flag)
 
     except Exception as error:
@@ -382,26 +545,48 @@ def searchlocations():
         try:
             conn, cur = get_db_connection()
             query = '''
-                                SELECT s.*, l.location, i.file_name AS image_file_name
-            FROM stories s
-            JOIN locations l ON s.location_id = l.id
-            LEFT JOIN (
-                SELECT story_id, file_name
-                FROM images i1
-                WHERE uploaded_on = (
-                    SELECT MAX(uploaded_on)
-                    FROM images i2
-                    WHERE i1.story_id = i2.story_id
-                )
-            ) i ON s.id = i.story_id
-            WHERE s.is_verified = true 
-            AND l.location = %s
-            ORDER BY s.year DESC;'''
+                SELECT s.*, l.location, i.file_name as image_file_name, i.image_data
+                FROM stories s
+                JOIN locations l ON s.location_id = l.id
+                LEFT JOIN (
+                    SELECT story_id, file_name, image_data -- add image_data to the SELECT statement
+                    FROM images p1
+                    WHERE uploaded_on = (
+                        SELECT MAX(uploaded_on)
+                        FROM images p2
+                        WHERE p1.story_id = p2.story_id
+                    )
+                ) i ON s.id = i.story_id
+                WHERE s.is_verified = true AND l.location = %s
+                GROUP BY s.id, l.location, i.file_name, i.image_data;
+            '''
             values = (location,)
             cur.execute(query, values)
-            stories = cur.fetchall()
-            if len(stories) == 0:
+            rows = cur.fetchall()
+            # print(row)
+            if rows is None:
                 flash('No stories found', 'searchstory_error')
+                print('no story')
+            stories = []
+            for row in rows:
+                story = {
+                    'id': row[0],
+                    'tag': row[1],
+                    'description': row[2],
+                    'user_id': row[3],
+                    'location_id': row[4],
+                    'year': row[5],
+                    'is_verified': row[6],
+                    'contributor': row[7],
+                    'uploaded_on': row[8],
+                    'title': row[9],
+                    'location': row[10],
+                    'image': []}
+        
+                if row['image_data'] is not None:
+                    data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+                    story['image'].append(data_uri)
+                stories.append(story)
                                
             # print(stories)
             nearbyStories = get_nearby_stories(location)
@@ -459,19 +644,22 @@ def addingStory():
                            
                 conn.commit()
                 files = request.files.getlist('files[]')
-                # print(files)
+               
                 if files and story_id:
                     try:
                         for file in files:
-
+                            print(file.filename)
                             if file and allowed_file(file.filename):
+                                # Extract relevant information from file object
                                 filename = secure_filename(file.filename)
-                                filepath = os.path.join(
-                                    app.config['UPLOAD_FOLDER'], filename)
-                                file.save(filepath)
-                                cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, NOW(),%s)", [
-                                            filename, story_id])
+                                image_data = file.read()
+
+                                # Insert image into database
+                                query = "INSERT INTO images (file_name, image_data, uploaded_on, story_id) VALUES (%s, %s, NOW(), %s);"
+                                values = (filename, image_data, story_id)  # Change story_id to the appropriate value
+                                cur.execute(query, values)
                                 conn.commit()
+                                
                                 flash('Story uploaded successfully! :)', 'addstory_success')
                     except psycopg2.Error as e:
                         conn.rollback()
@@ -723,11 +911,11 @@ def search_locations():
     # Do something with the coordinates
     conn, cur = get_db_connection()
     query1 = '''
-        SELECT s.*, l.location, p.file_name as image_file_name
+        SELECT s.*, l.location, p.file_name as image_file_name, p.image_data
         FROM stories s
         JOIN locations l ON s.location_id = l.id
         JOIN (
-            SELECT story_id, file_name
+            SELECT story_id, file_name, image_data
             FROM images p1
             WHERE uploaded_on = (
                 SELECT MAX(uploaded_on)
@@ -737,15 +925,15 @@ def search_locations():
         ) p ON s.id = p.story_id
         WHERE s.is_verified = true 
         AND ST_Distance(l.location_data::geography, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) <= 100
-        GROUP BY s.id, l.location, p.file_name
+        GROUP BY s.id, l.location, p.file_name, p.image_data
         ORDER BY s.year DESC;
     '''
     query2 = '''
-        SELECT s.*, l.location, p.file_name as image_file_name
+        SELECT s.*, l.location, p.file_name as image_file_name, p.image_data
         FROM stories s
         JOIN locations l ON s.location_id = l.id
         JOIN (
-            SELECT story_id, file_name
+            SELECT story_id, file_name, image_data
             FROM images p1
             WHERE uploaded_on = (
                 SELECT MAX(uploaded_on)
@@ -755,14 +943,61 @@ def search_locations():
         ) p ON s.id = p.story_id
         WHERE s.is_verified = true 
         AND ST_Distance(l.location_data::geography, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) BETWEEN 100 AND 5000
-        GROUP BY s.id, l.location, p.file_name
+        GROUP BY s.id, l.location, p.file_name, p.image_data
         ORDER BY s.year DESC;
     '''
     values = (lng,lat)
     cur.execute(query1,values)
-    stories = cur.fetchall()
+    rows = cur.fetchall()
+    
+    if rows is None:
+        flash("No, Stories Found!","searchstory_error")
+        print('no story')
+    stories = []
+    for row in rows:
+        story = {
+            'id': row[0],
+            'tag': row[1],
+            'description': row[2],
+            'user_id': row[3],
+            'location_id': row[4],
+            'year': row[5],
+            'is_verified': row[6],
+            'contributor': row[7],
+            'uploaded_on': row[8],
+            'title': row[9],
+            'location': row[10],
+            'image': []}
+
+        if row['image_data'] is not None:
+            data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+            story['image'].append(data_uri)
+        stories.append(story)
     cur.execute(query2,values)
-    nearbyStories = cur.fetchall()
+    rows = cur.fetchall()
+        # print(row)
+    if rows is None:
+        print('no story')
+    nearbyStories = []
+    for row in rows:
+        story = {
+            'id': row[0],
+            'tag': row[1],
+            'description': row[2],
+            'user_id': row[3],
+            'location_id': row[4],
+            'year': row[5],
+            'is_verified': row[6],
+            'contributor': row[7],
+            'uploaded_on': row[8],
+            'title': row[9],
+            'location': row[10],
+            'image': []}
+
+        if row['image_data'] is not None:
+            data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+            story['image'].append(data_uri)
+        nearbyStories.append(story)
     print(lng,lat)
     if stories:
         location = stories[0]['location']
@@ -822,12 +1057,12 @@ def user_stories():
     
     # all approved stories
     query1 = '''
-        SELECT s.*, l.location, i.file_name AS image_file_name
+        SELECT s.*, l.location, i.file_name AS image_file_name,i.image_data
         FROM stories s
         JOIN locations l ON s.location_id = l.id
         JOIN users u ON s.user_id = u.id
         LEFT JOIN (
-            SELECT story_id, file_name
+            SELECT story_id, file_name, image_data
             FROM images i1
             WHERE uploaded_on = (
                 SELECT MAX(uploaded_on)
@@ -841,12 +1076,12 @@ def user_stories():
     '''
     # all unapproved stories
     query2 = '''
-        SELECT s.*, l.location, i.file_name AS image_file_name
+        SELECT s.*, l.location, i.file_name AS image_file_name, i.image_data
         FROM stories s
         JOIN locations l ON s.location_id = l.id
         JOIN users u ON s.user_id = u.id
         LEFT JOIN (
-            SELECT story_id, file_name
+            SELECT story_id, file_name, image_data
             FROM images i1
             WHERE uploaded_on = (
                 SELECT MAX(uploaded_on)
@@ -863,11 +1098,58 @@ def user_stories():
     try:
         cur.execute(query1,value)
         
-        approvedStories = cur.fetchall()  
-        if not approvedStories:flash("You don't have any stories","mystory_error")
+        rows = cur.fetchall()
+        # print(row)
+        if rows is None:
+            flash("You don't have any stories","mystory_error")
+            print('no story')
+        approvedStories = []
+        for row in rows:
+            story = {
+                'id': row[0],
+                'tag': row[1],
+                'description': row[2],
+                'user_id': row[3],
+                'location_id': row[4],
+                'year': row[5],
+                'is_verified': row[6],
+                'contributor': row[7],
+                'uploaded_on': row[8],
+                'title': row[9],
+                'location': row[10],
+                'image': []}
+    
+            if row['image_data'] is not None:
+                data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+                story['image'].append(data_uri)
+            approvedStories.append(story)
+        
         cur.execute(query2,value) 
-        unapprovedStories = cur.fetchall()  
-        if not unapprovedStories and approvedStories:flash("Your all stories have been approved :)","mystory_success")
+        rows = cur.fetchall()
+        # print(row)
+        if rows is None:
+            flash("Your all stories have been approved :)","mystory_success")
+            print('no story')
+        unapprovedStories = []
+        for row in rows:
+            story = {
+                'id': row[0],
+                'tag': row[1],
+                'description': row[2],
+                'user_id': row[3],
+                'location_id': row[4],
+                'year': row[5],
+                'is_verified': row[6],
+                'contributor': row[7],
+                'uploaded_on': row[8],
+                'title': row[9],
+                'location': row[10],
+                'image': []}
+    
+            if row['image_data'] is not None:
+                data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+                story['image'].append(data_uri)
+            unapprovedStories.append(story)
         cur.close()
         conn.close()
         return render_template("userStories.html", approved=approvedStories,unapproved = unapprovedStories)
@@ -881,12 +1163,12 @@ def all_stories():
         
     # all approved stories
     query1 = '''
-        SELECT s.*, l.location, i.file_name AS image_file_name
+        SELECT s.*, l.location, i.file_name AS image_file_name, i.image_data
         FROM stories s
         JOIN locations l ON s.location_id = l.id
         JOIN users u ON s.user_id = u.id
         LEFT JOIN (
-            SELECT story_id, file_name
+            SELECT story_id, file_name, image_data
             FROM images i1
             WHERE uploaded_on = (
                 SELECT MAX(uploaded_on)
@@ -899,12 +1181,12 @@ def all_stories():
     '''
     # all unapproved stories
     query2 = '''
-        SELECT s.*, l.location, i.file_name AS image_file_name
+        SELECT s.*, l.location, i.file_name AS image_file_name, i.image_data
         FROM stories s
         JOIN locations l ON s.location_id = l.id
         JOIN users u ON s.user_id = u.id
         LEFT JOIN (
-            SELECT story_id, file_name
+            SELECT story_id, file_name, image_data
             FROM images i1
             WHERE uploaded_on = (
                 SELECT MAX(uploaded_on)
@@ -918,12 +1200,58 @@ def all_stories():
     conn, cur = get_db_connection()
     try:
         cur.execute(query1)
-        
-        approvedStories = cur.fetchall()  
-        if not approvedStories:flash("No stories found","deletestory_error")
+        rows = cur.fetchall()
+        # print(row)
+        if rows is None:
+            # flash("No stories found","deletestory_error")
+            print('no story')
+        approvedStories = []
+        for row in rows:
+            story = {
+                'id': row[0],
+                'tag': row[1],
+                'description': row[2],
+                'user_id': row[3],
+                'location_id': row[4],
+                'year': row[5],
+                'is_verified': row[6],
+                'contributor': row[7],
+                'uploaded_on': row[8],
+                'title': row[9],
+                'location': row[10],
+                'image': []}
+    
+            if row['image_data'] is not None:
+                data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+                story['image'].append(data_uri)
+            approvedStories.append(story)
         cur.execute(query2) 
-        unapprovedStories = cur.fetchall()  
-        if not unapprovedStories and approvedStories:flash("No stories found","deletestory_error")
+        
+        rows = cur.fetchall()
+        # print(row)
+        if rows is None and approvedStories is None:
+            flash("No stories found","deletestory_error")
+            print('no story')
+        unapprovedStories = []
+        for row in rows:
+            story = {
+                'id': row[0],
+                'tag': row[1],
+                'description': row[2],
+                'user_id': row[3],
+                'location_id': row[4],
+                'year': row[5],
+                'is_verified': row[6],
+                'contributor': row[7],
+                'uploaded_on': row[8],
+                'title': row[9],
+                'location': row[10],
+                'image': []}
+    
+            if row['image_data'] is not None:
+                data_uri = base64.b64encode(row['image_data']).decode('utf-8')
+                story['image'].append(data_uri)
+            unapprovedStories.append(story)
         cur.close()
         conn.close()
         return render_template("deleteStories.html", approved=approvedStories,unapproved = unapprovedStories)
@@ -993,20 +1321,23 @@ def update(story_id):
             conn.commit()
             flash('Story Updated Successfully! :)',"updatestory_success")
             files = request.files.getlist('files[]')
-            # print(files)
+               
             if files and story_id:
                 try:
                     for file in files:
-
+                        print(file.filename)
                         if file and allowed_file(file.filename):
+                            # Extract relevant information from file object
                             filename = secure_filename(file.filename)
-                            filepath = os.path.join(
-                                app.config['UPLOAD_FOLDER'], filename)
-                            file.save(filepath)
-                            cur.execute("INSERT INTO images (file_name, uploaded_on, story_id) VALUES (%s, NOW(),%s)", [
-                                        filename, story_id])
+                            image_data = file.read()
+
+                            # Insert image into database
+                            query = "INSERT INTO images (file_name, image_data, uploaded_on, story_id) VALUES (%s, %s, NOW(), %s);"
+                            values = (filename, image_data, story_id)  # Change story_id to the appropriate value
+                            cur.execute(query, values)
                             conn.commit()
-                            flash('Image(s) updated successfully! :)', 'updatestory_success')
+                            
+                            flash('Story uploaded successfully! :)', 'updatestory_success')
                             cur.close()
                             conn.close()
                 except psycopg2.Error as e:

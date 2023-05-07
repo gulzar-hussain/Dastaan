@@ -180,7 +180,7 @@ img:hover::before {
         <a href="{{ url_for('viewstory', story_id=story.id, flag=0) }}">
           <div class="location" >{{story.title}}</div>
         </a>
-        <img src="{{ url_for('get_image', filename=story['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=story.id, flag=2) }}')">
+        <img src="data:image/jpeg;base64,{{ story['image'][0] }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=story['id'], flag=2) }}')">
         
     </div>
     
@@ -205,7 +205,7 @@ img:hover::before {
         <a href="{{ url_for('viewstory', story_id=story.id, flag=0) }}">
           <div class="location" >{{story.title}}</div>
         </a>
-        <img src="{{ url_for('get_image', filename=story['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=story.id, flag=2) }}')">
+        <img src="data:image/jpeg;base64,{{ story['image'][0] }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=story['id'], flag=2) }}')">
         
     </div>
     

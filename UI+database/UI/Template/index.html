@@ -310,9 +310,9 @@ span
                         <button class="carousel-button next" data-carousel-button="next">&#10095;</button>
                         <ul data-slides>
                            
-                              {% for stroy in mostvisited %}
+                              {% for story in mostvisited %}
                               <li class="slide" data-active>
-                              <img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=stroy['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=stroy.id, flag=0) }}')">
+                              <img style="object-fit:fill" class="img-fluid mb-3 mb-lg-0" src="data:image/jpeg;base64,{{ story['image'][0] }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=story['id'], flag=0) }}')">
                             </li> 
                               {% endfor %}
                           
@@ -327,7 +327,7 @@ span
                 </div>
                 <!-- Project One Row-->
                 <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=latestStory['file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=latestStory.id, flag=0) }}')"></div>
+                    <div class="col-lg-6"><img class="img-fluid mb-3 mb-lg-0" src="data:image/jpeg;base64,{{ latestStory['image'][0] }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=latestStory['id'], flag=0) }}')"></div>
                     <div class="col-lg-6">
                         <div class="bg-black text-center h-100 project">
                             <div class="d-flex h-100">
@@ -346,7 +346,7 @@ span
                 </div>
                 <!-- Project Two Row-->
                 <div class="row gx-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('get_image', filename=historicStory['image_file_name']) }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=historicStory.id, flag=0) }}')"></div>
+                    <div class="col-lg-6"><img class="img-fluid mb-3 mb-lg-0" src="data:image/jpeg;base64,{{ historicStory['image'][0] }}" alt="Story Image"onclick="redirectToLocation('{{ url_for('viewstory', story_id=historicStory['id'], flag=0) }}')"></div>
                     <div class="col-lg-6 order-lg-first">
                         <div class="bg-black text-center h-100 project">
                             <div class="d-flex h-100">
