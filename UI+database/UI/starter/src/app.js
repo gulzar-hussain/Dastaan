@@ -194,20 +194,62 @@ function iwClick(lat, lng) {
     infoWindow.open(map);
   });
   // GET ALL STORIES AND LOCATION_DATA
-fetch('http://127.0.0.1:5000/locationData')
+  let Locations =[];
+  fetch('http://127.0.0.1:5000/locationData')
 .then(response => response.json())
 .then(data => {
   // Access lat and long data from the JSON response
   const stories = data;
+  
   for (const story of stories) {
     
     const lat = story.latitude;
-    const lng = story.longitude;   
+    const lng = story.longitude;
+    let loc=new google.maps.LatLng(lat,lng);
+    Locations.push(loc); 
     // Other data like location, location_data (point) and story_id can also be accessed.
-    console.log(`Location: ${story.location},Latitude: ${lat}, Longitude: ${lng}`);
+    // console.log(`Location: ${story.location},Latitude: ${lat}, Longitude: ${lng}`);
+  }
+  console.log(Locations);
+  var markers = [];
+
+  // Loop through the locations array and create a marker for each one
+  for (var i = 0; i < Locations.length; i++) {
+    console.log('here in for loop');
+    var marker = new google.maps.Marker({
+      position: Locations[i],
+      map: map
+    });
+
+    // Create an info window for each marker
+    
+
+    // Add a click event listener to the marker to open the info window
+    marker.addListener('click', function(event) {
+      const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    let buttonName = "Go To Stories";
+    const infoWindow = new google.maps.InfoWindow({});
+    var div = document.createElement("div");
+    div.innerHTML =
+      '<i class="fa fa-book"  style="font-size: 50px; display:block; margin-left:auto; margin-right:auto; text-align:center"></i><br>';
+    div.innerHTML += buttonName;
+    div.onclick = function () {
+      iwClick(lat, lng);
+    };
+
+    infoWindow.setContent(div);
+
+      infoWindow.open(map, marker);
+    });
+
+    // Add the marker to the markers array
+    markers.push(marker);
   }
 })
+  
 .catch(error => console.error(error));
+
 })();
 
 
