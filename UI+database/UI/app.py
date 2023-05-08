@@ -37,6 +37,7 @@ def get_db_connection():
 app = Flask(__name__, template_folder='Template', static_folder="static")
 app.secret_key = os.environ.get('APP_SECRET_KEY')
 openai.api_key = OPENAI_API_KEY
+
 # app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 CORS(app, methods=["POST"])
 # Flask-Mail configuration
@@ -329,50 +330,6 @@ def dashboard():
         return render_template('searchlocations.html')
 
     return render_template('index.html',latestStory = latest_story,historicStory = historic_story, mostvisited = mostvisited)
-
-@app.route('/showstory')
-def show_story():
-    conn,cur = get_db_connection()
-    # Fetch the story and its images from the database
-    cur.execute("SELECT s.*, l.location, i.file_name, i.image_data FROM stories s JOIN locations l ON s.location_id = l.id LEFT JOIN st_images i ON s.id = i.story_id WHERE s.id = %s", (50,))
-    row = cur.fetchone()
-    # print(row)
-    if row is None:
-        return "Story not found"
-    story = {
-        'id': row[0],
-        'tag': row[1],
-        'description': row[2],
-        'user_id': row[3],
-        'location_id': row[4],
-        'year': row[5],
-        'is_verified': row[6],
-        'contributor': row[7],
-        'uploaded_on': row[8],
-        'title': row[9],
-        'location': row[10],
-        'images': []
-    }
-    while row is not None:
-        if row[11] is not None:
-            image = {
-                'file_name': row[11],
-                'data': row[12]
-            }
-            story['images'].append(image)
-        row = cur.fetchone()
-
-    # Render the HTML template and pass the story to it
-    # Build HTML for story and images
-    html = f"<h1>{story['title']}</h1>"
-    html += f"<p>{story['description']}</p>"
-    for image in story['images']:
-        if image['data'] is not None:
-            data_uri = base64.b64encode(image['data']).decode('utf-8')
-            html += f"<img src='data:image/jpeg;base64,{data_uri}'/>"
-    cur.close()
-    conn.close()
-    return html
 
 @app.route("/test")
 def test():
@@ -889,23 +846,20 @@ def generate_prompt(animal):
 
 @app.route('/mapcoordinates', methods=('GET','POST'))
 def receive_coordinates():
-    global lat, lng
-    print('receive_coordinates')
-    data = request.get_json()
-    lat = data['lat']
-    lng = data['lng']
-    session['lat'] = lat
-    session['lng'] = lng
-    
-    print(lat, lng)
+    if request.method == 'POST':
+        data = request.get_json()
+        lat = data['lat']
+        lng = data['lng']
+        # print(lat, lng)
         # Do something with the coordinates
     
-    return jsonify({'message': 'Coordinates received'})
-    # return redirect(url_for("dashboard"))  
+    return jsonify({'message': 'Coordinates received'}) 
     
-@app.route('/storiesviamap')
+@app.route('/storiesviamap',methods=('GET','POST'))
 def search_locations():
-    global lat, lng
+    lat = request.args.get('lat')
+    lng = request.args.get('lng')
+    print(lat, lng)
     print('search_location')
     # print(lat, lng)
     # Do something with the coordinates
@@ -973,6 +927,8 @@ def search_locations():
             data_uri = base64.b64encode(row['image_data']).decode('utf-8')
             story['image'].append(data_uri)
         stories.append(story)
+    if len(stories) == 0:
+        flash("No, Stories Found For This  Particular Place!","searchstory_error")
     cur.execute(query2,values)
     rows = cur.fetchall()
         # print(row)
