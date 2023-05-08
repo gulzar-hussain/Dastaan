@@ -193,59 +193,23 @@ function iwClick(lat, lng) {
     // Open the info window
     infoWindow.open(map);
   });
+  // GET ALL STORIES AND LOCATION_DATA
+fetch('http://127.0.0.1:5000/locationData')
+.then(response => response.json())
+.then(data => {
+  // Access lat and long data from the JSON response
+  const stories = data;
+  for (const story of stories) {
+    
+    const lat = story.latitude;
+    const lng = story.longitude;   
+    // Other data like location, location_data (point) and story_id can also be accessed.
+    console.log(`Location: ${story.location},Latitude: ${lat}, Longitude: ${lng}`);
+  }
+})
+.catch(error => console.error(error));
 })();
 
-// GET ALL STORIES AND LOCATION_DATA
-fetch('http://127.0.0.1:5000/locationData')
-  .then(response => response.json())
-  .then(data => {
-    // Access lat and long data from the JSON response
-    const stories = data;
-    for (const story of stories) {
-      
-      const lat = story.latitude;
-      const lng = story.longitude;      
 
-
-      // Define the size of the polygon in meters
-      const size = 10;
-
-      // Define the vertices of the polygon as offsets from the center point
-      const positions = [
-        -size, 0, -size,
-        -size, 0, size,
-        size, 0, size,
-        size, 0, -size,
-      ];
-
-      // Offset the vertices by the center point's latitude and longitude
-      for (let i = 0; i < positions.length; i += 3) {
-        positions[i] += lng;
-        positions[i + 2] += lat;
-      }
-
-      // Define the indices of the polygon's triangles
-      const indices = [0, 1, 2, 0, 2, 3];
-
-      // Set the geometry's position and index attributes
-      const positionNumComponents = 3;
-      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents));
-      geometry.setIndex(indices);
-
-      // Create a new mesh for the polygon using a basic material with transparency
-      const material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 });
-      const polygon = new THREE.Mesh(geometry, material);
-
-      // Add the mesh to the scene
-      let scene;
-      scene = new THREE.Scene();
-      scene.add(polygon);
-      
-
-      // Other data like location, location_data (point) and story_id can also be accessed.
-      console.log(`Location: ${story.location},Latitude: ${lat}, Longitude: ${lng}`);
-    }
-  })
-  .catch(error => console.error(error));
 
   
