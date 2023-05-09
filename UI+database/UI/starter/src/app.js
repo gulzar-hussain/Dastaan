@@ -146,7 +146,10 @@ function iwClick(lat, lng) {
   searchBox.addListener("place_changed", () => {
     const place = searchBox.getPlace();
     if (place.geometry) {
-      map.setCenter(place.geometry.location);
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend(place.geometry.location);
+      map.fitBounds(bounds);
+      map.setZoom(20);
     } else {
       console.error("Error: No location found for the selected place.");
     }
@@ -193,9 +196,9 @@ function iwClick(lat, lng) {
     // Open the info window
     infoWindow.open(map);
   });
-  // GET ALL STORIES AND LOCATION_DATA
-  let Locations =[];
-  fetch('http://127.0.0.1:5000/locationData')
+// GET ALL STORIES AND LOCATION_DATA
+let Locations =[];
+fetch('http://127.0.0.1:5000/locationData')
 .then(response => response.json())
 .then(data => {
   // Access lat and long data from the JSON response
@@ -221,34 +224,33 @@ function iwClick(lat, lng) {
       map: map
     });
 
-    // Create an info window for each marker
-    
-
     // Add a click event listener to the marker to open the info window
-    marker.addListener('click', function(event) {
-      const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-    let buttonName = "Go To Stories";
-    const infoWindow = new google.maps.InfoWindow({});
-    var div = document.createElement("div");
-    div.innerHTML =
-      '<i class="fa fa-book"  style="font-size: 50px; display:block; margin-left:auto; margin-right:auto; text-align:center"></i><br>';
-    div.innerHTML += buttonName;
-    div.onclick = function () {
-      iwClick(lat, lng);
-    };
+    marker.addListener('click', (function(marker) {
+      return function() {
+        const lat = marker.getPosition().lat();
+        const lng = marker.getPosition().lng();
+        let buttonName = "Go To Stories";
+        const infoWindow = new google.maps.InfoWindow({});
+        var div = document.createElement("div");
+        div.innerHTML =
+          '<i class="fa fa-book"  style="font-size: 50px; display:block; margin-left:auto; margin-right:auto; text-align:center"></i><br>';
+        div.innerHTML += buttonName;
+        div.onclick = function () {
+          iwClick(lat, lng);
+        };
 
-    infoWindow.setContent(div);
+        infoWindow.setContent(div);
 
-      infoWindow.open(map, marker);
-    });
+        infoWindow.open(map, marker);
+      };
+    })(marker));
 
     // Add the marker to the markers array
     markers.push(marker);
   }
 })
-  
 .catch(error => console.error(error));
+
 
 })();
 

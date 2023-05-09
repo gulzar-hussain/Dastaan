@@ -21,17 +21,19 @@ load_dotenv()
 OPENAI_API_KEY=""  #ask hamna for openai key
 
 def get_db_connection():
-
-    conn = None
-    conn = psycopg2.connect(
-        database='Mydastaan',
-        user='postgres',
-        password='google',
-        host= 'localhost', # ask Gulzar for IP
-        port='5432'
-    )
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    return conn, cur
+    try:
+        conn = None
+        conn = psycopg2.connect(
+            database='Mydastaan',
+            user='postgres',
+            password='mydastaan',
+            host= 'dastaan.cdqhboxvfqyn.eu-north-1.rds.amazonaws.com', # ask Gulzar for IP
+            port='5432'
+        )
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        return conn, cur
+    except Exception as error:
+        print(error)
 
 
 app = Flask(__name__, template_folder='Template', static_folder="static")
@@ -189,6 +191,7 @@ def dashboard():
         LIMIT 5;
     '''
     try:
+
         conn, cur = get_db_connection()
         cur.execute(query1)
         # latest_story = cur.fetchone()
