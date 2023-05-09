@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
-OPENAI_API_KEY="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"  #ask hamna for openai key
+OPENAI_API_KEY=""  #ask hamna for openai key
 
 def get_db_connection():
     try:
@@ -111,7 +111,7 @@ def get_nearby_stories(location):
     AND s.location_id IN (
         SELECT id
         FROM locations 
-        WHERE ST_DWithin(location_data, (SELECT location_data FROM user_location), 5000)
+        WHERE ST_DWithin(location_data, (SELECT location_data FROM user_location), 3000)
     ) AND s.location_id != (
         SELECT id
         FROM locations 
@@ -900,7 +900,7 @@ def search_locations():
             )
         ) p ON s.id = p.story_id
         WHERE s.is_verified = true 
-        AND ST_Distance(l.location_data::geography, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) BETWEEN 100 AND 5000
+        AND ST_Distance(l.location_data::geography, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) BETWEEN 100 AND 3000
         GROUP BY s.id, l.location, p.file_name, p.image_data
         ORDER BY s.year DESC;
     '''
