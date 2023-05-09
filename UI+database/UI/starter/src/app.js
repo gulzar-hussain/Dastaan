@@ -24,7 +24,7 @@ const apiOptions = {
 // Old:AIzaSyAZ5HIzVkOyv-Y92om1I1JV08UIthSRLJA
 // New: AIzaSyCKzhctx7LyYpC0R5RUaoNMm_UOHuELP4c
 let mapOptions = {
-  tilt: 0,
+  tilt: 90,
   heading: 0,
   zoom: 18,
   center: { lat: 0, lng: 0 },
@@ -149,6 +149,7 @@ function iwClick(lat, lng) {
       const bounds = new google.maps.LatLngBounds();
       bounds.extend(place.geometry.location);
       map.fitBounds(bounds);
+      map.setOptions({ tilt: 90 });
       map.setZoom(20);
     } else {
       console.error("Error: No location found for the selected place.");
@@ -176,6 +177,7 @@ function iwClick(lat, lng) {
 
   map.addListener("click", (event) => {
     // Get the coordinates of the clicked location
+    map.setOptions({ tilt: 90 });
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
     let buttonName = "Go To Stories";
@@ -186,6 +188,7 @@ function iwClick(lat, lng) {
     div.innerHTML += buttonName;
     div.onclick = function () {
       iwClick(lat, lng);
+      
     };
 
     infoWindow.setContent(div);
@@ -227,6 +230,7 @@ fetch('http://127.0.0.1:5000/locationData')
     // Add a click event listener to the marker to open the info window
     marker.addListener('click', (function(marker) {
       return function() {
+        map.setOptions({ tilt: 90 });
         const lat = marker.getPosition().lat();
         const lng = marker.getPosition().lng();
         let buttonName = "Go To Stories";
