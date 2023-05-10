@@ -443,12 +443,12 @@ def viewstory(story_id, flag):
         cur.close()
         conn.close()
         print('end of view')
-        return render_template('viewstory.html', story=story, images=images, is_from_approve=flag)
+        return render_template('viewStory.html', story=story, images=images, is_from_approve=flag)
 
     except Exception as error:
         print(error)
 
-    return render_template('viewstory.html')
+    return render_template('viewStory.html')
 
 
 @app.route('/approved/<int:story_id>')
